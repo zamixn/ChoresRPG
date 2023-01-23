@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/week_selector_view"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_monday"
+            style="?android:attr/buttonBarStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/week_day_selector_button_margin"
+            android:layout_weight="@dimen/week_day_selector_button_layout_weight"
+            android:background="@drawable/round_button"
+            android:padding="0dp"
+            android:text="@string/week_day_button_monday"
+            app:cornerRadius="@dimen/week_day_selector_button_corner_radius" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_tuesday"
+            style="?android:attr/buttonBarStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/week_day_selector_button_margin"
+            android:layout_weight="@dimen/week_day_selector_button_layout_weight"
+            android:background="@drawable/round_button"
+            android:padding="0dp"
+            android:text="@string/week_day_button_tuesday"
+            app:cornerRadius="@dimen/week_day_selector_button_corner_radius" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_wednesday"
+            style="?android:attr/buttonBarStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/week_day_selector_button_margin"
+            android:layout_weight="@dimen/week_day_selector_button_layout_weight"
+            android:background="@drawable/round_button"
+            android:padding="0dp"
+            android:text="@string/week_day_button_wednesday"
+            app:cornerRadius="@dimen/week_day_selector_button_corner_radius" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_thursday"
+            style="?android:attr/buttonBarStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/week_day_selector_button_margin"
+            android:layout_weight="@dimen/week_day_selector_button_layout_weight"
+            android:background="@drawable/round_button"
+            android:padding="0dp"
+            android:text="@string/week_day_button_thursday"
+            app:cornerRadius="@dimen/week_day_selector_button_corner_radius" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_friday"
+            style="?android:attr/buttonBarStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/week_day_selector_button_margin"
+            android:layout_weight="@dimen/week_day_selector_button_layout_weight"
+            android:background="@drawable/round_button"
+            android:padding="0dp"
+            android:text="@string/week_day_button_friday"
+            app:cornerRadius="@dimen/week_day_selector_button_corner_radius" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_saturday"
+            style="?android:attr/buttonBarStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/week_day_selector_button_margin"
+            android:layout_weight="@dimen/week_day_selector_button_layout_weight"
+            android:background="@drawable/round_button"
+            android:padding="0dp"
+            android:text="@string/week_day_button_saturday"
+            app:cornerRadius="@dimen/week_day_selector_button_corner_radius" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button_sunday"
+            style="?android:attr/buttonBarStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_margin="@dimen/week_day_selector_button_margin"
+            android:layout_weight="@dimen/week_day_selector_button_layout_weight"
+            android:background="@drawable/round_button"
+            android:padding="0dp"
+            android:text="@string/week_day_button_sunday"
+            app:cornerRadius="@dimen/week_day_selector_button_corner_radius" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
