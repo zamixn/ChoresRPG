@@ -12,6 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
+import com.zsoftware.choresrpg.choreicon.ChoreIconSelectorFragment;
 import com.zsoftware.choresrpg.databinding.FragmentAddChoreFragmentBinding;
 import com.zsoftware.choresrpg.databinding.FragmentChoreListBinding;
 
@@ -61,7 +63,8 @@ public class AddChoreFragment extends Fragment {
 
                 String desc = binding.choreDescription.getText().toString();
                 List<WeekDay> weekdays = ((WeekSelectorFragment)binding.weekDaysFragmentContainerView.getFragment()).GetSelectedWeekDays();
-                Chore c = new Chore(desc, weekdays, null);
+                ChoreIconEnum icon = ((ChoreIconSelectorFragment)binding.iconFragmentContainerView.getFragment()).ChoreIcon;
+                Chore c = new Chore(desc, weekdays, icon);
 
                 List<Chore> chores = SaveData.Instance().GetChoreList();
                 chores.add(c);

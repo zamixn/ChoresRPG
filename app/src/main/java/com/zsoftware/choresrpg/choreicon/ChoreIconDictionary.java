@@ -13,6 +13,7 @@ import com.zsoftware.choresrpg.R;
 import com.zsoftware.choresrpg.SaveData;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -58,5 +59,19 @@ public class ChoreIconDictionary {
             ids.add(d);
         }
         return  ids;
+    }
+
+    public ChoreIconEnum GetChoreIconFromDrawable(Drawable d)
+    {
+        Enumeration<ChoreIconEnum> chores = IconDictionary.keys();
+        while(chores.hasMoreElements())
+        {
+            ChoreIconEnum c = chores.nextElement();
+            if(IconDictionary.get(c) == d)
+            {
+                return c;
+            }
+        }
+        return null;
     }
 }

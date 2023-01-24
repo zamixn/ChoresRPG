@@ -25,6 +25,7 @@ public class ChoreIconSelectorFragment extends Fragment {
 
     private FragmentChoreIconSelectorBinding binding;
     private List<Drawable> IconDrawables;
+    public ChoreIconEnum ChoreIcon;
     public ChoreIconSelectorFragment() {}
 
 
@@ -67,15 +68,17 @@ public class ChoreIconSelectorFragment extends Fragment {
         IconDrawables = ChoreIconDictionary.Instance().GetResourceList();
         grid.setAdapter(new ChoreImageAdapter(getActivity(), dialog, IconDrawables));
         grid.setOnItemClickListener((adapterView, view, i, l) -> {
-            OnIconSelected();
+            OnIconSelected(i);
             dialog.dismiss();
         });
 
         dialog.show();
     }
 
-    private void OnIconSelected()
+    private void OnIconSelected(int index)
     {
-        Log.e("TAG", "OnIconSelected: asd");
+        Drawable d = IconDrawables.get(index);
+        ChoreIcon = ChoreIconDictionary.Instance().GetChoreIconFromDrawable(d);
+        binding.icon.setImageDrawable(d);
     }
 }
