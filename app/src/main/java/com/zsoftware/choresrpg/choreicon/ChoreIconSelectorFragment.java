@@ -53,6 +53,8 @@ public class ChoreIconSelectorFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
+        ChoreIcon = ChoreIconEnum.Sigh;
+        binding.icon.setImageDrawable(ChoreIconDictionary.Instance().GetIcon(ChoreIcon));
         binding.icon.setOnClickListener(view1 -> ShowSelectIconDialog());
         super.onViewCreated(view, savedInstanceState);
     }

@@ -12,17 +12,26 @@ import android.widget.TextView;
 
 import com.zsoftware.choresrpg.Chore;
 import com.zsoftware.choresrpg.R;
+import com.zsoftware.choresrpg.WeekDay;
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ChoreAdapter extends BaseAdapter {
     private Context context;
     private final List<Chore> Chores;
+    private WeekDay WeekDay;
 
-    public ChoreAdapter(Context context, List<Chore> chores) {
+    public ChoreAdapter(Context context, List<Chore> chores, WeekDay weekDay) {
         this.context = context;
-        this.Chores = chores;
+        this.Chores = new ArrayList();
+        for (Chore c: chores) {
+            if(c.IsOnDay(weekDay))
+                Chores.add(c);
+        }
+
+        this.WeekDay = weekDay;
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {

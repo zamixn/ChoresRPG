@@ -10,6 +10,7 @@ public class Chore {
     public String GetDescription() { return Contents; }
     private List<WeekDay> WeekDays;
     public List<WeekDay> GetWeekDays() { return WeekDays; }
+    public Boolean IsOnDay(WeekDay day) { return WeekDays.contains(day); }
     private ChoreIconEnum Icon;
     public ChoreIconEnum GetIcon() { return Icon; }
 

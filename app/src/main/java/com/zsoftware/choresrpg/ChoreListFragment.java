@@ -53,7 +53,7 @@ public class ChoreListFragment extends Fragment {
     public void UpdateChoreListView()
     {
         List<Chore> chores = SaveData.Instance().GetChoreList();
-        ChoreAdapter arrayAdapter =  new ChoreAdapter(getContext(), chores);
+        ChoreAdapter arrayAdapter =  new ChoreAdapter(getContext(), chores, WeekDay.Monday);
         binding.choreListListView.setAdapter(arrayAdapter);
     }
 
