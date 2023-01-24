@@ -12,8 +12,11 @@ import androidx.core.content.ContextCompat;
 import com.zsoftware.choresrpg.R;
 import com.zsoftware.choresrpg.SaveData;
 
+import java.util.ArrayList;
 import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.Hashtable;
+import java.util.List;
 
 public class ChoreIconDictionary {
     private static String LOGTAG = "ChoreIconDictionary";
@@ -43,5 +46,17 @@ public class ChoreIconDictionary {
     public Drawable GetIcon(ChoreIconEnum icon)
     {
         return IconDictionary.get(icon);
+    }
+
+    public List<Drawable> GetResourceList()
+    {
+        Enumeration<Drawable> drawables = IconDictionary.elements();
+        List<Drawable> ids = new ArrayList<Drawable>();
+        while(drawables.hasMoreElements())
+        {
+            Drawable d = drawables.nextElement();
+            ids.add(d);
+        }
+        return  ids;
     }
 }

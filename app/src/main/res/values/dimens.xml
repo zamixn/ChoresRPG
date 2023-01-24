@@ -3,6 +3,7 @@
     <dimen name="week_day_selector_button_corner_radius">32dp</dimen>
     <dimen name="week_day_selector_button_size">64dp</dimen>
     <dimen name="chore_icon_size">64dp</dimen>
+    <dimen name="chore_icon_size_for_list">65dp</dimen>
     <dimen name="week_day_selector_button_layout_weight">1</dimen>
     <dimen name="week_day_selector_button_margin">5dp</dimen>
 </resources>

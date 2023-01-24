@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="5dp" >
+
+    <ImageView
+        android:id="@+id/chore_image"
+        android:layout_width="@dimen/chore_icon_size"
+        android:layout_height="@dimen/chore_icon_size"
+        android:layout_gravity="center|center_horizontal|center_vertical"
+        android:contentDescription="@string/chore_icon"
+        android:foregroundGravity="center_vertical|center|center_horizontal"></ImageView>
+
+</LinearLayout>

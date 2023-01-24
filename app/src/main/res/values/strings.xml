@@ -23,7 +23,6 @@
     <string name="week_day_button_saturday">Sa</string>
     <string name="week_day_button_sunday">Su</string>
 
-    <string name="delete_all_save_data">Deleta All Save Data</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="delete_all_save_data">Delete All Save Data</string>
+    <string name="chore_icon">Chore Icon</string>
 </resources>
