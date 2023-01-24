@@ -14,9 +14,12 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.zsoftware.choresrpg.adapters.ChoreAdapter;
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
 import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
 import com.zsoftware.choresrpg.databinding.FragmentChoreListBinding;
+
+import java.util.List;
 
 public class ChoreListFragment extends Fragment {
 
@@ -49,8 +52,8 @@ public class ChoreListFragment extends Fragment {
 
     public void UpdateChoreListView()
     {
-        String[] chores = SaveData.Instance().GetChoreListAsStringArray();
-        ArrayAdapter<String> arrayAdapter =  new ArrayAdapter<String>(getContext(), R.layout.list_view_layout, chores);
+        List<Chore> chores = SaveData.Instance().GetChoreList();
+        ChoreAdapter arrayAdapter =  new ChoreAdapter(getContext(), chores);
         binding.choreListListView.setAdapter(arrayAdapter);
     }
 

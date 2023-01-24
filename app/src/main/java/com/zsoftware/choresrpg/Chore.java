@@ -7,8 +7,11 @@ import java.util.List;
 
 public class Chore {
     private String Contents;
+    public String GetDescription() { return Contents; }
     private List<WeekDay> WeekDays;
+    public List<WeekDay> GetWeekDays() { return WeekDays; }
     private ChoreIconEnum Icon;
+    public ChoreIconEnum GetIcon() { return Icon; }
 
     public Chore(String contents) {
         Contents = contents;
