@@ -22,6 +22,13 @@
     <string name="week_day_button_friday">Fr</string>
     <string name="week_day_button_saturday">Sa</string>
     <string name="week_day_button_sunday">Su</string>
+    <string name="week_day_button_monday_full">Monday</string>
+    <string name="week_day_button_tuesday_full">Tuesday</string>
+    <string name="week_day_button_wednesday_full">Wednesday</string>
+    <string name="week_day_button_thursday_full">Thursday</string>
+    <string name="week_day_button_friday_full">Friday</string>
+    <string name="week_day_button_saturday_full">Saturday</string>
+    <string name="week_day_button_sunday_full">Sunday</string>
 
     <string name="delete_all_save_data">Delete All Save Data</string>
     <string name="chore_icon">Chore Icon</string>
