@@ -1,27 +1,42 @@
 package com.zsoftware.choresrpg;
 
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
+import android.widget.GridView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
+import com.zsoftware.choresrpg.choreicon.ChoreImageAdapter;
 import com.zsoftware.choresrpg.databinding.ActivityChoreBinding;
+import com.zsoftware.choresrpg.databinding.DialogEditDescriptionBinding;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
-// Shows all data of one chore: icon, description and the weekdays it is scheduled on.
-// Opened by tapping a chore in the week view or the day view.
+// Shows all data of one chore. Every property has an edit button; the chore can also be marked as
+// completed or deleted. Opened by tapping a chore in the week view or the day view.
 public class ChoreActivity extends AppCompatActivity {
 
-    // Chores have no id yet, so the chore is passed in its save format (see Chore.ToSaveDataString).
-    private static final String ExtraChore = "Chore";
+    private static final String ExtraChoreId = "ChoreId";
 
     private static final int[] ShortDayNames = {
             R.string.week_day_button_monday,
@@ -43,11 +58,13 @@ public class ChoreActivity extends AppCompatActivity {
     };
 
     private ActivityChoreBinding binding;
+    private String ChoreId;
+    private Chore CurrentChore;
 
     public static Intent CreateIntent(Context context, Chore chore)
     {
         Intent intent = new Intent(context, ChoreActivity.class);
-        intent.putExtra(ExtraChore, chore.ToSaveDataString());
+        intent.putExtra(ExtraChoreId, chore.GetId());
         return intent;
     }
 
@@ -66,8 +83,27 @@ public class ChoreActivity extends AppCompatActivity {
         if (getSupportActionBar() != null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        Chore chore = Chore.Parse(getIntent().getStringExtra(ExtraChore));
-        ShowChore(chore);
+        ChoreId = getIntent().getStringExtra(ExtraChoreId);
+
+        binding.editIconButton.setOnClickListener(view -> ShowEditIconDialog());
+        binding.editDescriptionButton.setOnClickListener(view -> ShowEditDescriptionDialog());
+        binding.editDaysButton.setOnClickListener(view -> ShowEditDaysDialog());
+        binding.editLastCompletedButton.setOnClickListener(view -> ShowEditLastCompletedDialog());
+        binding.completeButton.setOnClickListener(view -> CompleteChore());
+        binding.deleteButton.setOnClickListener(view -> ShowDeleteDialog());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        CurrentChore = SaveData.Instance().GetChore(ChoreId);
+        if (CurrentChore == null)
+        {
+            Toast.makeText(this, R.string.chore_not_found, Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        ShowChore();
     }
 
     @Override
@@ -76,13 +112,14 @@ public class ChoreActivity extends AppCompatActivity {
         return true;
     }
 
-    private void ShowChore(Chore chore)
+    private void ShowChore()
     {
+        Chore chore = CurrentChore;
         setTitle(chore.GetDescription());
 
-        binding.choreIcon.setImageDrawable(ChoreIconDictionary.Instance().GetIcon(chore.GetIcon()));
-        binding.choreDescriptionText.setText(chore.GetDescription());
+        binding.choreIcon.setImageDrawable(GetIconCopy(chore));
         binding.choreIconName.setText(getString(R.string.chore_icon_label, chore.GetIcon().name()));
+        binding.choreDescriptionText.setText(chore.GetDescription());
 
         WeekDay[] weekDays = WeekDay.values();
         List<String> scheduledDays = new ArrayList<>();
@@ -105,5 +142,149 @@ public class ChoreActivity extends AppCompatActivity {
             binding.choreDaysSummary.setText(R.string.chore_every_day);
         else
             binding.choreDaysSummary.setText(String.join(", ", scheduledDays));
+
+        Long lastCompleted = chore.GetLastCompleted();
+        if (lastCompleted == null)
+            binding.choreLastCompletedText.setText(R.string.chore_never_completed);
+        else
+            binding.choreLastCompletedText.setText(
+                    DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(new Date(lastCompleted)));
+    }
+
+    // Saves the edited chore and shows the new values.
+    private void SaveChore()
+    {
+        SaveData.Instance().UpdateChore(CurrentChore);
+        ShowChore();
+    }
+
+    private void CompleteChore()
+    {
+        CurrentChore.Complete();
+        SaveChore();
+        Toast.makeText(this, R.string.chore_completed, Toast.LENGTH_SHORT).show();
+    }
+
+    private void ShowEditDescriptionDialog()
+    {
+        DialogEditDescriptionBinding dialogBinding = DialogEditDescriptionBinding.inflate(getLayoutInflater());
+        dialogBinding.descriptionInput.setText(CurrentChore.GetDescription());
+        dialogBinding.descriptionInput.setSelection(CurrentChore.GetDescription().length());
+
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.edit_description)
+                .setView(dialogBinding.getRoot())
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.save, null)
+                .show();
+        // Set after show() so an empty description keeps the dialog open instead of closing it.
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(view -> {
+            String description = Chore.CleanDescription(String.valueOf(dialogBinding.descriptionInput.getText()));
+            if (description.isEmpty())
+            {
+                dialogBinding.descriptionInput.setError(getString(R.string.description_empty));
+                return;
+            }
+            CurrentChore.SetDescription(description);
+            SaveChore();
+            dialog.dismiss();
+        });
+    }
+
+    private void ShowEditIconDialog()
+    {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setCancelable(true);
+        dialog.setContentView(R.layout.chore_icon_selector_dialog);
+
+        GridView grid = dialog.findViewById(R.id.gridView);
+        List<Drawable> icons = ChoreIconDictionary.Instance().GetResourceList();
+        grid.setAdapter(new ChoreImageAdapter(this, dialog, icons));
+        grid.setOnItemClickListener((adapterView, view, i, l) -> {
+            CurrentChore.SetIcon(ChoreIconDictionary.Instance().GetChoreIconFromDrawable(icons.get(i)));
+            SaveChore();
+            dialog.dismiss();
+        });
+
+        dialog.show();
+    }
+
+    private void ShowEditDaysDialog()
+    {
+        WeekDay[] weekDays = WeekDay.values();
+        String[] dayNames = new String[weekDays.length];
+        boolean[] checked = new boolean[weekDays.length];
+        for (int i = 0; i < weekDays.length; i++)
+        {
+            dayNames[i] = getString(FullDayNames[i]);
+            checked[i] = CurrentChore.IsOnDay(weekDays[i]);
+        }
+
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.edit_days)
+                .setMultiChoiceItems(dayNames, checked, (dialog, which, isChecked) -> checked[which] = isChecked)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.save, (dialog, which) -> {
+                    List<WeekDay> selected = new ArrayList<>();
+                    for (int i = 0; i < weekDays.length; i++)
+                    {
+                        if (checked[i])
+                            selected.add(weekDays[i]);
+                    }
+                    CurrentChore.SetWeekDays(selected);
+                    SaveChore();
+                })
+                .show();
+    }
+
+    // Picks the date of the last completion. The time of day is kept from the old value (or now),
+    // "Clear" sets it back to never completed. Future dates can't be picked.
+    private void ShowEditLastCompletedDialog()
+    {
+        Calendar current = Calendar.getInstance();
+        if (CurrentChore.GetLastCompleted() != null)
+            current.setTimeInMillis(CurrentChore.GetLastCompleted());
+
+        DatePickerDialog dialog = new DatePickerDialog(this, (picker, year, month, dayOfMonth) -> {
+            Calendar picked = (Calendar) current.clone();
+            picked.set(year, month, dayOfMonth);
+            long now = System.currentTimeMillis();
+            CurrentChore.SetLastCompleted(Math.min(picked.getTimeInMillis(), now));
+            SaveChore();
+        }, current.get(Calendar.YEAR), current.get(Calendar.MONTH), current.get(Calendar.DAY_OF_MONTH));
+        dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        dialog.setButton(DialogInterface.BUTTON_NEUTRAL, getString(R.string.clear), (d, which) -> {
+            CurrentChore.SetLastCompleted(null);
+            SaveChore();
+        });
+        dialog.show();
+    }
+
+    // Confirmation popup: shows the chore's own icon and name so it's clear what will be removed,
+    // with a red Delete button next to Cancel. Deleting returns to the previous screen.
+    private void ShowDeleteDialog()
+    {
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setIcon(GetIconCopy(CurrentChore))
+                .setTitle(R.string.delete_chore_title)
+                .setMessage(getString(R.string.delete_chore_message, CurrentChore.GetDescription()))
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.delete, (d, which) -> {
+                    SaveData.Instance().DeleteChore(CurrentChore.GetId());
+                    Toast.makeText(this, R.string.chore_deleted, Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .show();
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(this, R.color.delete_red));
+    }
+
+    // The icon dictionary's drawables are shared; each view or dialog gets its own copy.
+    private Drawable GetIconCopy(Chore chore)
+    {
+        Drawable icon = ChoreIconDictionary.Instance().GetIcon(chore.GetIcon());
+        if (icon == null || icon.getConstantState() == null)
+            return icon;
+        return icon.getConstantState().newDrawable(getResources()).mutate();
     }
 }

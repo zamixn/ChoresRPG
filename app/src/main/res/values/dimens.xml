@@ -14,8 +14,11 @@
     <dimen name="chore_list_bottom_padding">88dp</dimen>
     <dimen name="chore_view_padding">16dp</dimen>
     <dimen name="chore_view_section_spacing">16dp</dimen>
-    <dimen name="chore_view_day_size">40dp</dimen>
-    <dimen name="chore_view_day_margin">4dp</dimen>
+    <dimen name="chore_view_day_size">32dp</dimen>
+    <dimen name="chore_view_day_margin">2dp</dimen>
+    <dimen name="chore_view_edit_button_size">48dp</dimen>
+    <dimen name="chore_view_buttons_spacing">32dp</dimen>
+    <dimen name="dialog_content_padding">24dp</dimen>
     <dimen name="calendar_padding">4dp</dimen>
     <dimen name="calendar_day_min_height">88dp</dimen>
     <dimen name="calendar_day_padding">3dp</dimen>

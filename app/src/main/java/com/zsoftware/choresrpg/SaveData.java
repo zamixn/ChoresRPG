@@ -56,15 +56,65 @@ public class SaveData {
         if(s.isEmpty())
             return chores;
         String[] strings = s.split(";");
+        boolean addedIds = false;
         for (int i = 0; i < strings.length; i++)
         {
             Chore chore = Chore.Parse(strings[i]);
             if(chore != null)
+            {
                 chores.add(chore);
+                if (chore.WasLoadedWithoutId())
+                    addedIds = true;
+            }
             else
                 Log.e(LOGTAG, String.format("GetChoreList: Failed to parse %s", strings[i]));
         }
+        // Chores saved before ids existed got new ids while loading; save them so the ids stay the same.
+        if (addedIds)
+            SaveChoreList(chores);
         return chores;
+    }
+
+    // Returns the chore with this id, or null if there is none (e.g. it was deleted).
+    public Chore GetChore(String id)
+    {
+        for (Chore chore : GetChoreList())
+        {
+            if (chore.GetId().equals(id))
+                return chore;
+        }
+        return null;
+    }
+
+    // Replaces the saved chore that has the same id.
+    public void UpdateChore(Chore updated)
+    {
+        List<Chore> chores = GetChoreList();
+        for (int i = 0; i < chores.size(); i++)
+        {
+            if (chores.get(i).GetId().equals(updated.GetId()))
+            {
+                chores.set(i, updated);
+                SaveChoreList(chores);
+                return;
+            }
+        }
+        Log.e(LOGTAG, String.format("UpdateChore: no chore with id %s", updated.GetId()));
+    }
+
+    public void DeleteChore(String id)
+    {
+        List<Chore> chores = GetChoreList();
+        for (int i = 0; i < chores.size(); i++)
+        {
+            if (chores.get(i).GetId().equals(id))
+            {
+                chores.remove(i);
+                SaveChoreList(chores);
+                return;
+            }
+        }
+        Log.e(LOGTAG, String.format("DeleteChore: no chore with id %s", id));
     }
     public String[] GetChoreListAsStringArray()
     {

@@ -55,6 +55,12 @@ public class MonthActivity extends AppCompatActivity {
         ScreenSetup.ApplySafeAreaInsets(binding.appBar, binding.contentMonth);
 
         setSupportActionBar(binding.toolbar);
+    }
+
+    // Rebuilt on every return, so chores edited or deleted in the day or chore view show up correctly.
+    @Override
+    protected void onResume() {
+        super.onResume();
         BuildCalendar();
     }
 

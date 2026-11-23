@@ -25,6 +25,7 @@ public class DayActivity extends AppCompatActivity {
     private static final String ExtraDateMillis = "DateMillis";
 
     private ActivityDayBinding binding;
+    private WeekDay Day;
 
     // For the week view: the day is only known as a weekday.
     public static Intent CreateIntent(Context context, WeekDay weekDay)
@@ -57,13 +58,18 @@ public class DayActivity extends AppCompatActivity {
         if (getSupportActionBar() != null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        WeekDay weekDay = WeekDay.valueOf(getIntent().getStringExtra(ExtraWeekDay));
-        setTitle(GetDayTitle(weekDay));
-
-        List<Chore> chores = SaveData.Instance().GetChoreList();
-        ChoreAdapter adapter = new ChoreAdapter(this, chores, weekDay);
-        binding.dayChoresList.setAdapter(adapter);
+        Day = WeekDay.valueOf(getIntent().getStringExtra(ExtraWeekDay));
+        setTitle(GetDayTitle(Day));
         binding.dayChoresList.setEmptyView(binding.noChoresText);
+    }
+
+    // Reloads on every return, so chores edited or deleted in the chore view show up correctly.
+    @Override
+    protected void onResume() {
+        super.onResume();
+        List<Chore> chores = SaveData.Instance().GetChoreList();
+        ChoreAdapter adapter = new ChoreAdapter(this, chores, Day);
+        binding.dayChoresList.setAdapter(adapter);
         binding.dayChoresList.setOnItemClickListener((parent, view, position, id) ->
                 startActivity(ChoreActivity.CreateIntent(DayActivity.this, adapter.getItem(position))));
     }

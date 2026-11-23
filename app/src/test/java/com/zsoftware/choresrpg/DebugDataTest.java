@@ -24,6 +24,7 @@ public class DebugDataTest {
             assertEquals(chore.GetDescription(), loaded.GetDescription());
             assertEquals(chore.GetIcon(), loaded.GetIcon());
             assertEquals(chore.GetWeekDays(), loaded.GetWeekDays());
+            assertEquals(chore.GetId(), loaded.GetId());
         }
     }
 }
