@@ -49,8 +49,8 @@
     <string name="chore_completed">Chore completed</string>
     <string name="completed_today">Completed today</string>
     <string name="chore_already_completed">Already completed today</string>
-    <string name="reset_last_completed">Reset last completed date</string>
-    <string name="last_completed_reset">Last completed date reset</string>
+    <string name="reset_last_completed">Undo last completion</string>
+    <string name="last_completed_reset">Last completion undone</string>
     <string name="chore_completed_check">Completed</string>
     <string name="delete_chore">Delete chore</string>
     <string name="delete_chore_title">Delete chore?</string>
@@ -58,6 +58,13 @@
     <string name="delete">Delete</string>
     <string name="chore_deleted">Chore deleted</string>
     <string name="chore_not_found">This chore no longer exists</string>
+    <string name="view_history">View history</string>
+    <string name="chore_history">Chore history</string>
+    <string name="no_completions">Not completed yet</string>
+    <plurals name="completed_times">
+        <item quantity="one">Completed %d time</item>
+        <item quantity="other">Completed %d times</item>
+    </plurals>
     <string name="chore_icon">Chore Icon</string>
     <string name="choose_icon">Choose an icon</string>
     <string name="search_icons">Search icons (e.g. laundry, dog, trash)</string>

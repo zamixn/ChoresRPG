@@ -41,6 +41,11 @@
             android:exported="false"
             android:theme="@style/Theme.ChoresRPG.NoActionBar" />
         <activity
+            android:name=".ChoreHistoryActivity"
+            android:exported="false"
+            android:label="@string/chore_history"
+            android:theme="@style/Theme.ChoresRPG.NoActionBar" />
+        <activity
             android:name=".AddChoreActivity"
             android:exported="false"
             android:label="@string/add_chore"

@@ -59,6 +59,60 @@ public class ChoreTest {
     }
 
     @Test
+    public void History_KeepsEveryCompletionThroughRoundTrip()
+    {
+        Chore chore = new Chore("Dishes", Arrays.asList(WeekDay.values()), ChoreIconEnum.Wash);
+        chore.Complete();
+        chore.SetLastCompleted(1795000000000L);   // moves the newest completion
+        chore.Complete();
+        chore.Complete();
+        assertEquals(3, chore.GetCompletionHistory().size());
+
+        Chore loaded = Chore.Parse(chore.ToSaveDataString());
+        assertEquals(chore.GetCompletionHistory(), loaded.GetCompletionHistory());
+        assertEquals(chore.GetLastCompleted(), loaded.GetLastCompleted());
+        assertEquals(Long.valueOf(1795000000000L), loaded.GetCompletionHistory().get(0));
+    }
+
+    @Test
+    public void History_RemoveLastCompletion_FallsBackToPreviousOne()
+    {
+        Chore chore = new Chore("Dishes", Arrays.asList(WeekDay.values()), ChoreIconEnum.Wash);
+        chore.SetLastCompleted(1000L);
+        chore.Complete();
+        chore.RemoveLastCompletion();
+        assertEquals(Long.valueOf(1000L), chore.GetLastCompleted());
+        chore.RemoveLastCompletion();
+        assertNull(chore.GetLastCompleted());
+        chore.RemoveLastCompletion();   // nothing left: no error
+        assertTrue(chore.GetCompletionHistory().isEmpty());
+    }
+
+    @Test
+    public void History_OldFormatWithOnlyLastCompleted()
+    {
+        // Saved before the history existed: the last completion becomes the only history entry.
+        Chore loaded = Chore.Parse("Mop/Kitchen/Monday/null/null/null/null/null/null/abc-id/1795000000000");
+        assertEquals("abc-id", loaded.GetId());
+        assertEquals(Arrays.asList(1795000000000L), loaded.GetCompletionHistory());
+    }
+
+    @Test
+    public void IsCompletedOn_AnyCompletionInHistory()
+    {
+        Chore chore = new Chore("Dishes", Arrays.asList(WeekDay.values()), ChoreIconEnum.Wash);
+        Calendar monday = Calendar.getInstance();
+        monday.set(2026, Calendar.NOVEMBER, 23, 9, 0);
+        Calendar tuesday = (Calendar) monday.clone();
+        tuesday.add(Calendar.DAY_OF_MONTH, 1);
+        chore.SetLastCompleted(monday.getTimeInMillis());
+        chore.Complete();
+        chore.SetLastCompleted(tuesday.getTimeInMillis());
+        assertTrue(chore.IsCompletedOn(monday));
+        assertTrue(chore.IsCompletedOn(tuesday));
+    }
+
+    @Test
     public void Complete_SetsLastCompletedToNow()
     {
         Chore chore = new Chore("Trash", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);

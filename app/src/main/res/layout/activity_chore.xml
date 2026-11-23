@@ -140,6 +140,14 @@
                 app:icon="@drawable/ic_complete" />
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/view_history_button"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/view_history"
+                app:icon="@drawable/ic_history" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/delete_button"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"

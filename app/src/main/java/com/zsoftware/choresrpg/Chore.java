@@ -4,6 +4,7 @@ import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,21 +22,47 @@ public class Chore {
     private ChoreIconEnum Icon;
     public ChoreIconEnum GetIcon() { return Icon; }
     public void SetIcon(ChoreIconEnum icon) { Icon = icon; }
-    // When the chore was last completed, in milliseconds since the epoch; null if it never was.
-    private Long LastCompleted;
-    public Long GetLastCompleted() { return LastCompleted; }
-    public void SetLastCompleted(Long lastCompleted) { LastCompleted = lastCompleted; }
-    public void Complete() { LastCompleted = System.currentTimeMillis(); }
+    // Every time the chore was completed (chores repeat), in milliseconds since the epoch, oldest first.
+    private final List<Long> CompletionHistory = new ArrayList<>();
+    public List<Long> GetCompletionHistory() { return Collections.unmodifiableList(CompletionHistory); }
+    // The most recent completion; null if the chore was never completed.
+    public Long GetLastCompleted()
+    {
+        return CompletionHistory.isEmpty() ? null : CompletionHistory.get(CompletionHistory.size() - 1);
+    }
+    // Moves the most recent completion to another time (adds one if there is none).
+    public void SetLastCompleted(long lastCompleted)
+    {
+        if (!CompletionHistory.isEmpty())
+            CompletionHistory.remove(CompletionHistory.size() - 1);
+        AddCompletion(lastCompleted);
+    }
+    // Undoes the most recent completion; the one before it (if any) becomes the last completed.
+    public void RemoveLastCompletion()
+    {
+        if (!CompletionHistory.isEmpty())
+            CompletionHistory.remove(CompletionHistory.size() - 1);
+    }
+    public void Complete() { AddCompletion(System.currentTimeMillis()); }
 
-    // True when the chore was last completed on the same calendar day as the given date.
+    private void AddCompletion(long time)
+    {
+        CompletionHistory.add(time);
+        Collections.sort(CompletionHistory);
+    }
+
+    // True when the chore was completed (any time) on the same calendar day as the given date.
     public boolean IsCompletedOn(Calendar date)
     {
-        if (LastCompleted == null)
-            return false;
         Calendar completed = Calendar.getInstance(date.getTimeZone());
-        completed.setTimeInMillis(LastCompleted);
-        return completed.get(Calendar.YEAR) == date.get(Calendar.YEAR)
-                && completed.get(Calendar.DAY_OF_YEAR) == date.get(Calendar.DAY_OF_YEAR);
+        for (Long time : CompletionHistory)
+        {
+            completed.setTimeInMillis(time);
+            if (completed.get(Calendar.YEAR) == date.get(Calendar.YEAR)
+                    && completed.get(Calendar.DAY_OF_YEAR) == date.get(Calendar.DAY_OF_YEAR))
+                return true;
+        }
+        return false;
     }
     public boolean IsCompletedToday() { return IsCompletedOn(Calendar.getInstance()); }
 
@@ -64,10 +91,12 @@ public class Chore {
         return description.replace('/', '-').replace(';', ',').trim();
     }
 
-    // Save format: Description/Icon/<7 weekdays, "null" when not scheduled>/Id/LastCompleted
-    // Data saved before ids existed stops after the weekdays.
+    // Save format: Description/Icon/<7 weekdays, "null" when not scheduled>/Id/LastCompleted/History
+    // History is the completion times separated by ',' ("null" when empty). Older data stops earlier:
+    // before ids existed after the weekdays, before the history after LastCompleted.
     private static final int IdIndex = 9;
     private static final int LastCompletedIndex = 10;
+    private static final int HistoryIndex = 11;
     public static Chore Parse(String s)
     {
         String[] parts = s.split("/");
@@ -84,8 +113,15 @@ public class Chore {
             c.Id = parts[IdIndex];
         else
             c.LoadedWithoutId = true;
-        if (parts.length > LastCompletedIndex && parts[LastCompletedIndex].compareTo("null") != 0)
-            c.LastCompleted = Long.parseLong(parts[LastCompletedIndex]);
+        if (parts.length > HistoryIndex && parts[HistoryIndex].compareTo("null") != 0)
+        {
+            for (String time : parts[HistoryIndex].split(","))
+                c.CompletionHistory.add(Long.parseLong(time));
+            Collections.sort(c.CompletionHistory);
+        }
+        // Saved before the history existed: the last completion is the only one known.
+        else if (parts.length > LastCompletedIndex && parts[LastCompletedIndex].compareTo("null") != 0)
+            c.CompletionHistory.add(Long.parseLong(parts[LastCompletedIndex]));
         return c;
     }
     public String ToSaveDataString()
@@ -98,8 +134,22 @@ public class Chore {
                 s += "/null";
         }
         s += "/" + Id;
-        s += "/" + (LastCompleted == null ? "null" : LastCompleted.toString());
+        Long lastCompleted = GetLastCompleted();
+        s += "/" + (lastCompleted == null ? "null" : lastCompleted.toString());
+        s += "/" + (CompletionHistory.isEmpty() ? "null" : JoinTimes(CompletionHistory));
         return s;
+    }
+
+    private static String JoinTimes(List<Long> times)
+    {
+        StringBuilder joined = new StringBuilder();
+        for (Long time : times)
+        {
+            if (joined.length() > 0)
+                joined.append(',');
+            joined.append(time);
+        }
+        return joined.toString();
     }
 
     @Override
@@ -109,7 +159,7 @@ public class Chore {
                 ", Contents='" + Contents + '\'' +
                 ", WeekDays=" + WeekDays +
                 ", Icon=" + Icon +
-                ", LastCompleted=" + LastCompleted +
+                ", CompletionHistory=" + CompletionHistory +
                 '}';
     }
 }

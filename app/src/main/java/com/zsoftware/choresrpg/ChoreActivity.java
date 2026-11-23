@@ -95,6 +95,8 @@ public class ChoreActivity extends AppCompatActivity {
         binding.editLastCompletedButton.setOnClickListener(view -> ShowEditLastCompletedDialog());
         binding.completeButton.setOnClickListener(view -> CompleteChore());
         binding.deleteButton.setOnClickListener(view -> ShowDeleteDialog());
+        binding.viewHistoryButton.setOnClickListener(view ->
+                startActivity(ChoreHistoryActivity.CreateIntent(ChoreActivity.this, CurrentChore)));
     }
 
     @Override
@@ -188,9 +190,10 @@ public class ChoreActivity extends AppCompatActivity {
         ShortToast.Show(this, R.string.chore_completed);
     }
 
+    // Undoes the most recent completion; the one before it becomes the last completed.
     private void ResetLastCompleted()
     {
-        CurrentChore.SetLastCompleted(null);
+        CurrentChore.RemoveLastCompletion();
         SaveChore();
         ShortToast.Show(this, R.string.last_completed_reset);
     }
@@ -257,8 +260,9 @@ public class ChoreActivity extends AppCompatActivity {
                 .show();
     }
 
-    // Picks the date of the last completion. The time of day is kept from the old value (or now).
-    // Future dates can't be picked. (The reset button next to it clears the date.)
+    // Moves the most recent completion to another date (adds a completion if there is none). The time of
+    // day is kept from the old value (or now). Future dates can't be picked. (The reset button next to
+    // it undoes the most recent completion; the full list is in the chore history.)
     private void ShowEditLastCompletedDialog()
     {
         Calendar current = Calendar.getInstance();

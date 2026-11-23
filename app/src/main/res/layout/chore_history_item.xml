@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One completion in the chore history: green check, date, time. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="@dimen/chore_view_padding"
+    android:paddingTop="@dimen/history_item_padding"
+    android:paddingEnd="@dimen/chore_view_padding"
+    android:paddingBottom="@dimen/history_item_padding">
+
+    <ImageView
+        android:layout_width="@dimen/chore_completed_check_size"
+        android:layout_height="@dimen/chore_completed_check_size"
+        android:layout_marginEnd="@dimen/chore_completed_check_margin"
+        android:importantForAccessibility="no"
+        app:srcCompat="@drawable/ic_complete"
+        app:tint="@color/completed_green" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/completion_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/history_date_text_size"
+            tools:text="Tuesday, 24 November 2026" />
+
+        <TextView
+            android:id="@+id/completion_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="21:40" />
+    </LinearLayout>
+
+</LinearLayout>
