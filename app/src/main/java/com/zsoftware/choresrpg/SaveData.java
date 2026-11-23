@@ -29,6 +29,24 @@ public class SaveData {
     {
         _Instance = new SaveData();
         _Instance.SharedPreferences = context.getSharedPreferences(PreferencesFileName, MODE_PRIVATE);
+        if (BuildConfig.DEBUG)
+            _Instance.AddDebugDataOnce();
+    }
+
+    // Debug builds only: appends the sample chores from DebugData to the saved chore list, once per
+    // install. A flag remembers that it was done, so deleted debug chores don't come back.
+    private String DebugDataAddedKey = "DebugDataAdded";
+    private void AddDebugDataOnce()
+    {
+        if (SharedPreferences.getBoolean(DebugDataAddedKey, false))
+            return;
+        List<Chore> chores = GetChoreList();
+        chores.addAll(DebugData.GetChores());
+        SaveChoreList(chores);
+        SharedPreferences.Editor editor = SharedPreferences.edit();
+        editor.putBoolean(DebugDataAddedKey, true);
+        editor.commit();
+        Log.i(LOGTAG, "AddDebugDataOnce: added debug chores");
     }
 
     public List<Chore> GetChoreList()
