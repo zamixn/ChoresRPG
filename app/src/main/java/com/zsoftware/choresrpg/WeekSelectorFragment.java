@@ -82,6 +82,26 @@ public class WeekSelectorFragment extends Fragment {
             @Override
             public void onClick(View view) { SelectDay(WeekDay.Sunday); }
         });
+
+        if (PendingInitialSelection != null)
+        {
+            SelectDay(PendingInitialSelection);
+            PendingInitialSelection = null;
+        }
+    }
+
+    // Selects a day when the selector first shows. Works before or after this fragment's view exists
+    // (the parent form may call it before the selector's buttons are set up).
+    private WeekDay PendingInitialSelection;
+    public void SetInitialSelection(WeekDay weekDay)
+    {
+        if (WeekDayButtons != null && WeekDayButtons.get(weekDay) != null)
+        {
+            if (!SelectedWeekDays.contains(weekDay))
+                SelectDay(weekDay);
+        }
+        else
+            PendingInitialSelection = weekDay;
     }
 
     private void SelectDay(WeekDay weekDay)

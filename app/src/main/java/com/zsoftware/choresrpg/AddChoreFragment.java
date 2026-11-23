@@ -26,6 +26,9 @@ import java.util.List;
  */
 public class AddChoreFragment extends Fragment {
 
+    // Optional argument: name of a WeekDay that starts out selected (set when adding from the day view).
+    public static final String ArgSelectedDay = "SelectedDay";
+
     private FragmentAddChoreFragmentBinding binding;
 
     public AddChoreFragment() {
@@ -56,6 +59,13 @@ public class AddChoreFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        Bundle args = getArguments();
+        if (savedInstanceState == null && args != null && args.getString(ArgSelectedDay) != null)
+        {
+            WeekDay selectedDay = WeekDay.valueOf(args.getString(ArgSelectedDay));
+            ((WeekSelectorFragment)binding.weekDaysFragmentContainerView.getFragment()).SetInitialSelection(selectedDay);
+        }
+
         binding.addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -71,6 +81,12 @@ public class AddChoreFragment extends Fragment {
 
                 ShortToast.Show(getContext(), R.string.chore_saved);
 
+                // Opened from the month or day view: close the form and return there.
+                if (getActivity() instanceof AddChoreActivity)
+                {
+                    getActivity().finish();
+                    return;
+                }
                 NavHostFragment.findNavController(AddChoreFragment.this)
                         .navigate(R.id.action_addChoreFragment_to_FirstFragment);
             }

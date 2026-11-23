@@ -3,6 +3,7 @@ package com.zsoftware.choresrpg;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.core.graphics.Insets;
@@ -35,6 +36,27 @@ public class ScreenSetup {
                 Insets bars = windowInsets.getInsets(INSET_TYPES);
                 Insets ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
                 view.setPadding(bars.left, 0, bars.right, Math.max(bars.bottom, ime.bottom));
+                return windowInsets;
+            }
+        });
+    }
+
+    // For a floating button placed directly in the screen's CoordinatorLayout (outside the padded
+    // content): moves it up and in by the navigation bar / cutout, on top of its own margins.
+    public static void ApplyFabInsets(View fab)
+    {
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) fab.getLayoutParams();
+        final int baseBottom = params.bottomMargin;
+        final int baseEnd = params.getMarginEnd();
+        ViewCompat.setOnApplyWindowInsetsListener(fab, new OnApplyWindowInsetsListener() {
+            @NonNull
+            @Override
+            public WindowInsetsCompat onApplyWindowInsets(@NonNull View view, @NonNull WindowInsetsCompat windowInsets) {
+                Insets bars = windowInsets.getInsets(INSET_TYPES);
+                ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) view.getLayoutParams();
+                lp.bottomMargin = baseBottom + bars.bottom;
+                lp.setMarginEnd(baseEnd + Math.max(bars.right, bars.left));
+                view.setLayoutParams(lp);
                 return windowInsets;
             }
         });

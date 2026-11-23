@@ -31,7 +31,9 @@
         <ListView
             android:id="@+id/day_chores_list"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="@dimen/chore_list_bottom_padding" />
 
         <TextView
             android:id="@+id/no_chores_text"
@@ -42,5 +44,17 @@
             android:textSize="@dimen/normal_text_size" />
 
     </FrameLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/add_chore_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:contentDescription="@string/add_chore"
+        android:cropToPadding="false"
+        app:fabSize="auto"
+        app:srcCompat="@android:drawable/ic_input_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

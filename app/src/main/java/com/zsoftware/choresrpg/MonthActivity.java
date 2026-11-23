@@ -57,6 +57,10 @@ public class MonthActivity extends AppCompatActivity {
         ScreenSetup.ApplySafeAreaInsets(binding.appBar, binding.contentMonth);
 
         setSupportActionBar(binding.toolbar);
+
+        ScreenSetup.ApplyFabInsets(binding.addChoreFab);
+        binding.addChoreFab.setOnClickListener(view ->
+                startActivity(AddChoreActivity.CreateIntent(MonthActivity.this)));
     }
 
     // Rebuilt on every return, so chores edited or deleted in the day or chore view show up correctly.

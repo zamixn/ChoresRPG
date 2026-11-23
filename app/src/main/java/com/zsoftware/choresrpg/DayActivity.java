@@ -35,7 +35,7 @@ public class DayActivity extends AppCompatActivity {
         return intent;
     }
 
-    // For the month view: a specific date, shown in the title.
+    // For the month view: a specific date.
     public static Intent CreateIntent(Context context, WeekDay weekDay, Calendar date)
     {
         Intent intent = CreateIntent(context, weekDay);
@@ -61,6 +61,10 @@ public class DayActivity extends AppCompatActivity {
         Day = WeekDay.valueOf(getIntent().getStringExtra(ExtraWeekDay));
         setTitle(GetDayTitle(Day));
         binding.dayChoresList.setEmptyView(binding.noChoresText);
+
+        ScreenSetup.ApplyFabInsets(binding.addChoreFab);
+        binding.addChoreFab.setOnClickListener(view ->
+                startActivity(AddChoreActivity.CreateIntent(DayActivity.this, Day)));
     }
 
     // Reloads on every return, so chores edited or deleted in the chore view show up correctly.
@@ -80,12 +84,9 @@ public class DayActivity extends AppCompatActivity {
         return true;
     }
 
-    // "Monday, 23 November" when opened for a date, otherwise just "Monday".
+    // e.g. "Monday, 23 November". From the week view the date is that weekday's date this week.
     private String GetDayTitle(WeekDay weekDay)
     {
-        if (!getIntent().hasExtra(ExtraDateMillis))
-            return getString(GetFullDayName(weekDay));
-
         String dayAndMonth = new SimpleDateFormat("d MMMM", Locale.getDefault()).format(GetDate().getTime());
         return getString(GetFullDayName(weekDay)) + ", " + dayAndMonth;
     }

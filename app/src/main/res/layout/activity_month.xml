@@ -59,12 +59,24 @@
                     android:orientation="vertical"
                     android:paddingStart="@dimen/calendar_padding"
                     android:paddingEnd="@dimen/calendar_padding"
-                    android:paddingBottom="@dimen/calendar_padding" />
+                    android:paddingBottom="@dimen/chore_list_bottom_padding" />
 
             </androidx.core.widget.NestedScrollView>
 
         </LinearLayout>
 
     </HorizontalScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/add_chore_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="10dp"
+        android:contentDescription="@string/add_chore"
+        android:cropToPadding="false"
+        app:fabSize="auto"
+        app:srcCompat="@android:drawable/ic_input_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
