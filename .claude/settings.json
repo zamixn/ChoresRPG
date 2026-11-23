@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "blockReadsOutsideWorkingDirectories": true,
+    "blockWritesOutsideWorkingDirectories": true,
+    "allow": [
+      "Bash(./gradlew assemble*)",
+      "Bash(./gradlew test*)",
+      "Bash(./gradlew lint*)",
+      "Bash(./gradlew clean*)",
+      "Bash(./gradlew --version)",
+      "PowerShell(.\\gradlew assemble*)",
+      "PowerShell(.\\gradlew test*)",
+      "PowerShell(.\\gradlew lint*)",
+      "PowerShell(.\\gradlew clean*)",
+      "PowerShell(.\\gradlew --version)"
+    ],
+    "ask": [
+      "Bash(adb *)",
+      "PowerShell(adb *)",
+      "Bash(git commit*)",
+      "PowerShell(git commit*)"
+    ],
+    "deny": [
+      "Bash(git push*)",
+      "PowerShell(git push*)",
+      "Bash(*gradlew*install*)",
+      "PowerShell(*gradlew*install*)",
+      "Bash(*gradlew*connected*)",
+      "PowerShell(*gradlew*connected*)",
+      "Bash(*gradlew*deviceCheck*)",
+      "PowerShell(*gradlew*deviceCheck*)",
+      "Bash(adb*install*)",
+      "PowerShell(adb*install*)"
+    ]
+  }
+}
