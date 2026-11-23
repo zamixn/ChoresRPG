@@ -35,5 +35,9 @@
     <string name="monthly_view">Monthly view</string>
     <string name="weekly_view">Weekly view</string>
     <string name="no_chores_on_day">No chores on this day</string>
+    <string name="chore_icon_label">Icon: %1$s</string>
+    <string name="chore_days_label">Days</string>
+    <string name="chore_every_day">Every day</string>
+    <string name="chore_no_days">No days scheduled</string>
     <string name="chore_icon">Chore Icon</string>
 </resources>

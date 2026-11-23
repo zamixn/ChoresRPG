@@ -82,7 +82,13 @@ public class ChoreListFragment extends Fragment {
             LinearLayout list = ChoreLists.get(d);
             list.removeAllViews();
             for (int i = 0; i < adapter.getCount(); i++)
-                list.addView(adapter.getView(i, null, list));
+            {
+                Chore chore = adapter.getItem(i);
+                View row = adapter.getView(i, null, list);
+                row.setOnClickListener(rowView ->
+                        startActivity(ChoreActivity.CreateIntent(requireContext(), chore)));
+                list.addView(row);
+            }
 
             ImageView iv = WeekImages.get(d);
             int box = d == selectedWeek ? R.drawable.rounded_box_selected : R.drawable.rounded_box;

@@ -36,6 +36,10 @@
             android:name=".DayActivity"
             android:exported="false"
             android:theme="@style/Theme.ChoresRPG.NoActionBar" />
+        <activity
+            android:name=".ChoreActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ChoresRPG.NoActionBar" />
     </application>
 
 </manifest>

@@ -42,21 +42,19 @@ public class ChoreAdapter extends BaseAdapter {
         View gridView;
 
         if (convertView == null) {
-
-            Chore chore = Chores.get(position);
-            gridView = new View(context);
-
-            gridView = inflater.inflate(R.layout.choreitem, null);
-
-            ImageView imageView = (ImageView)gridView.findViewById(R.id.iconImage);
-            imageView.setImageDrawable(ChoreIconDictionary.Instance().GetIcon(chore.GetIcon()));
-
-            TextView textView = (TextView)gridView.findViewById(R.id.descriptionTextView);
-            textView.setText(chore.GetDescription());
-
+            gridView = inflater.inflate(R.layout.choreitem, parent, false);
         } else {
             gridView = (View) convertView;
         }
+
+        // Fill the row every time: a recycled row (convertView) still shows the chore it was made for.
+        Chore chore = Chores.get(position);
+
+        ImageView imageView = (ImageView)gridView.findViewById(R.id.iconImage);
+        imageView.setImageDrawable(ChoreIconDictionary.Instance().GetIcon(chore.GetIcon()));
+
+        TextView textView = (TextView)gridView.findViewById(R.id.descriptionTextView);
+        textView.setText(chore.GetDescription());
 
         return gridView;
     }
@@ -66,8 +64,8 @@ public class ChoreAdapter extends BaseAdapter {
         return Chores.size();
     }
     @Override
-    public Object getItem(int position) {
-        return null;
+    public Chore getItem(int position) {
+        return Chores.get(position);
     }
 
     @Override

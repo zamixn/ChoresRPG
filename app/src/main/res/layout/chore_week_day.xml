@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="@dimen/chore_view_day_size"
+    android:layout_height="@dimen/chore_view_day_size"
+    android:layout_margin="@dimen/chore_view_day_margin"
+    android:background="@drawable/round_button"
+    android:gravity="center"
+    tools:text="Mo" />

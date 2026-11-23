@@ -61,8 +61,11 @@ public class DayActivity extends AppCompatActivity {
         setTitle(GetDayTitle(weekDay));
 
         List<Chore> chores = SaveData.Instance().GetChoreList();
-        binding.dayChoresList.setAdapter(new ChoreAdapter(this, chores, weekDay));
+        ChoreAdapter adapter = new ChoreAdapter(this, chores, weekDay);
+        binding.dayChoresList.setAdapter(adapter);
         binding.dayChoresList.setEmptyView(binding.noChoresText);
+        binding.dayChoresList.setOnItemClickListener((parent, view, position, id) ->
+                startActivity(ChoreActivity.CreateIntent(DayActivity.this, adapter.getItem(position))));
     }
 
     @Override
