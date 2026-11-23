@@ -1,0 +1,13 @@
+<!-- MdCoffeeMaker from react-icons (Material Design icons, Apache License 2.0) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@color/chore_icon"
+        android:pathData="M18 6V4h2V2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14v-2h-4.03A4.97 4.97 0 0 0 18 16v-5H8v5c0 1.64.81 3.09 2.03 4H6V4h2v2c0 .55.45 1 1 1h8c.55 0 1-.45 1-1" />
+    <path
+        android:fillColor="@color/chore_icon"
+        android:pathData="M12.0,9.0a1.0,1.0 0 1,0 2.0,0a1.0,1.0 0 1,0 -2.0,0" />
+</vector>

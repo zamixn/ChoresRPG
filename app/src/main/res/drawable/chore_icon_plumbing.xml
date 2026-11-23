@@ -1,0 +1,13 @@
+<!-- MdPlumbing from react-icons (Material Design icons, Apache License 2.0) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@color/chore_icon"
+        android:pathData="m19.28 4.93-2.12-2.12c-.78-.78-2.05-.78-2.83 0L11.5 5.64l2.12 2.12 2.12-2.12 3.54 3.54a3.01 3.01 0 0 0 0-4.25M5.49 13.77c.59.59 1.54.59 2.12 0l2.47-2.47-2.12-2.13-2.47 2.47c-.59.59-.59 1.54 0 2.13" />
+    <path
+        android:fillColor="@color/chore_icon"
+        android:pathData="m15.04 7.76-.71.71-.71.71L10.44 6c-.59-.6-1.54-.6-2.12-.01a1.49 1.49 0 0 0 0 2.12l3.18 3.18-.71.71-6.36 6.36c-.78.78-.78 2.05 0 2.83s2.05.78 2.83 0L16.45 12a.996.996 0 1 0 1.41-1.41z" />
+</vector>

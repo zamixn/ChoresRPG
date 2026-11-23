@@ -31,7 +31,9 @@
                     android:id="@+id/chore_icon"
                     android:layout_width="@dimen/chore_view_toolbar_icon_size"
                     android:layout_height="@dimen/chore_view_toolbar_icon_size"
+                    android:background="@drawable/toolbar_icon_background"
                     android:contentDescription="@string/chore_icon"
+                    android:padding="@dimen/chore_view_toolbar_icon_padding"
                     tools:src="@drawable/floor_mop" />
 
                 <ImageButton

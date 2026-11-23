@@ -1,7 +1,6 @@
 package com.zsoftware.choresrpg;
 
 import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,8 +9,6 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
-import android.widget.GridView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -22,7 +19,7 @@ import androidx.core.content.ContextCompat;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
-import com.zsoftware.choresrpg.choreicon.ChoreImageAdapter;
+import com.zsoftware.choresrpg.choreicon.ChoreIconPicker;
 import com.zsoftware.choresrpg.databinding.ActivityChoreBinding;
 import com.zsoftware.choresrpg.databinding.DialogEditDescriptionBinding;
 
@@ -226,21 +223,10 @@ public class ChoreActivity extends AppCompatActivity {
 
     private void ShowEditIconDialog()
     {
-        final Dialog dialog = new Dialog(this);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setCancelable(true);
-        dialog.setContentView(R.layout.chore_icon_selector_dialog);
-
-        GridView grid = dialog.findViewById(R.id.gridView);
-        List<Drawable> icons = ChoreIconDictionary.Instance().GetResourceList();
-        grid.setAdapter(new ChoreImageAdapter(this, dialog, icons));
-        grid.setOnItemClickListener((adapterView, view, i, l) -> {
-            CurrentChore.SetIcon(ChoreIconDictionary.Instance().GetChoreIconFromDrawable(icons.get(i)));
+        ChoreIconPicker.Show(this, CurrentChore.GetIcon(), icon -> {
+            CurrentChore.SetIcon(icon);
             SaveChore();
-            dialog.dismiss();
         });
-
-        dialog.show();
     }
 
     private void ShowEditDaysDialog()

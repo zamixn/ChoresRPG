@@ -122,6 +122,25 @@ public class ChoreTest {
     }
 
     @Test
+    public void Icons_OriginalSavedNamesStillLoad()
+    {
+        // Chores saved before the icon set grew use these names.
+        for (String name : new String[] { "Cleaning", "Sigh", "FloorMop", "Fridge" })
+            assertEquals(name, ChoreIconEnum.valueOf(name).name());
+        assertTrue(ChoreIconEnum.values().length > 100);
+    }
+
+    @Test
+    public void Icons_EveryIconSurvivesRoundTrip()
+    {
+        for (ChoreIconEnum icon : ChoreIconEnum.values())
+        {
+            Chore chore = new Chore("Chore", Arrays.asList(WeekDay.Monday), icon);
+            assertEquals(icon, Chore.Parse(chore.ToSaveDataString()).GetIcon());
+        }
+    }
+
+    @Test
     public void Description_SeparatorsAreReplaced()
     {
         Chore chore = new Chore("Wash/dry; fold", Arrays.asList(WeekDay.Sunday), ChoreIconEnum.Sigh);

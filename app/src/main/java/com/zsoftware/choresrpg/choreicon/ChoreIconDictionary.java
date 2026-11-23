@@ -1,24 +1,19 @@
 package com.zsoftware.choresrpg.choreicon;
 
-import static android.content.Context.MODE_PRIVATE;
-
 import android.app.Activity;
-import android.content.res.Resources;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
-import com.zsoftware.choresrpg.R;
-import com.zsoftware.choresrpg.SaveData;
-
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Dictionary;
-import java.util.Enumeration;
-import java.util.Hashtable;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
+// Gives the drawable of each chore icon. There are a few hundred icons, so each one is loaded the
+// first time it's needed and then kept, instead of loading all of them when a screen opens.
 public class ChoreIconDictionary {
     private static String LOGTAG = "ChoreIconDictionary";
     private static ChoreIconDictionary _Instance;
@@ -30,47 +25,46 @@ public class ChoreIconDictionary {
     }
     public static void Initialize(Activity context)
     {
-        _Instance = new ChoreIconDictionary(context);
+        // Every screen calls this; keep the loaded icons if it was already done.
+        if (_Instance == null)
+            _Instance = new ChoreIconDictionary(context);
     }
 
-    private Dictionary<ChoreIconEnum, Drawable> IconDictionary;
+    private final Context AppContext;
+    private final Map<ChoreIconEnum, Drawable> IconDictionary = new EnumMap<>(ChoreIconEnum.class);
     private ChoreIconDictionary(Activity context)
     {
-        IconDictionary = new Hashtable<>();
-        Resources res = context.getResources();
-        IconDictionary.put(ChoreIconEnum.Cleaning, ContextCompat.getDrawable(context, R.drawable.cleaning));
-        IconDictionary.put(ChoreIconEnum.Sigh, ContextCompat.getDrawable(context, R.drawable.breath));
-        IconDictionary.put(ChoreIconEnum.FloorMop, ContextCompat.getDrawable(context, R.drawable.floor_mop));
-        IconDictionary.put(ChoreIconEnum.Fridge, ContextCompat.getDrawable(context, R.drawable.fridge));
+        AppContext = context.getApplicationContext();
     }
 
     public Drawable GetIcon(ChoreIconEnum icon)
     {
-        return IconDictionary.get(icon);
+        if (icon == null)
+            return null;
+        Drawable drawable = IconDictionary.get(icon);
+        if (drawable == null)
+        {
+            drawable = ContextCompat.getDrawable(AppContext, icon.GetDrawableId());
+            IconDictionary.put(icon, drawable);
+        }
+        return drawable;
     }
 
+    // All icons, in ChoreIconEnum order (loads every icon).
     public List<Drawable> GetResourceList()
     {
-        Enumeration<Drawable> drawables = IconDictionary.elements();
-        List<Drawable> ids = new ArrayList<Drawable>();
-        while(drawables.hasMoreElements())
-        {
-            Drawable d = drawables.nextElement();
-            ids.add(d);
-        }
-        return  ids;
+        List<Drawable> drawables = new ArrayList<>();
+        for (ChoreIconEnum icon : ChoreIconEnum.values())
+            drawables.add(GetIcon(icon));
+        return drawables;
     }
 
     public ChoreIconEnum GetChoreIconFromDrawable(Drawable d)
     {
-        Enumeration<ChoreIconEnum> chores = IconDictionary.keys();
-        while(chores.hasMoreElements())
+        for (Map.Entry<ChoreIconEnum, Drawable> entry : IconDictionary.entrySet())
         {
-            ChoreIconEnum c = chores.nextElement();
-            if(IconDictionary.get(c) == d)
-            {
-                return c;
-            }
+            if (entry.getValue() == d)
+                return entry.getKey();
         }
         return null;
     }

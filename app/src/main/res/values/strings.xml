@@ -59,6 +59,7 @@
     <string name="chore_deleted">Chore deleted</string>
     <string name="chore_not_found">This chore no longer exists</string>
     <string name="chore_icon">Chore Icon</string>
+    <string name="choose_icon">Choose an icon</string>
     <string name="previous_month">Previous month</string>
     <string name="next_month">Next month</string>
     <string name="previous_week">Previous week</string>

@@ -11,4 +11,6 @@
     <color name="calendar_today_fill">#226200EE</color>
     <color name="delete_red">#FFD32F2F</color>
     <color name="completed_green">#FF2E7D32</color>
+    <!-- Fill color of the generated chore_icon_* vector icons. -->
+    <color name="chore_icon">#FF00897B</color>
 </resources>

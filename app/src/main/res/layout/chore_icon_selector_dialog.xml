@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="wrap_content"
-    android:layout_height="match_parent">
-
-    <GridView
-        android:id="@+id/gridView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:numColumns="auto_fit"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:columnWidth="@dimen/chore_icon_size_for_list">
-
-    </GridView>
-</androidx.constraintlayout.widget.ConstraintLayout>
+<!-- Scrollable grid of all chore icons (see ChoreIconPicker). -->
+<GridView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gridView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clipToPadding="false"
+    android:columnWidth="@dimen/icon_picker_column_width"
+    android:gravity="center"
+    android:numColumns="auto_fit"
+    android:padding="@dimen/icon_picker_padding"
+    android:scrollbarStyle="outsideOverlay"
+    android:stretchMode="spacingWidthUniform" />
