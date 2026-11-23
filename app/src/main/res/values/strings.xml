@@ -35,11 +35,9 @@
     <string name="monthly_view">Monthly view</string>
     <string name="weekly_view">Weekly view</string>
     <string name="no_chores_on_day">No chores on this day</string>
-    <string name="chore_icon_label">Icon: %1$s</string>
     <string name="chore_days_label">Days</string>
     <string name="chore_every_day">Every day</string>
     <string name="chore_no_days">No days scheduled</string>
-    <string name="chore_description_label">Description</string>
     <string name="chore_last_completed_label">Last completed</string>
     <string name="chore_never_completed">Never</string>
     <string name="edit_icon">Edit icon</string>
@@ -47,9 +45,13 @@
     <string name="edit_days">Edit days</string>
     <string name="edit_last_completed">Edit last completed date</string>
     <string name="description_empty">The description can\'t be empty</string>
-    <string name="clear">Clear</string>
     <string name="complete_chore">Complete chore</string>
     <string name="chore_completed">Chore completed</string>
+    <string name="completed_today">Completed today</string>
+    <string name="chore_already_completed">Already completed today</string>
+    <string name="reset_last_completed">Reset last completed date</string>
+    <string name="last_completed_reset">Last completed date reset</string>
+    <string name="chore_completed_check">Completed</string>
     <string name="delete_chore">Delete chore</string>
     <string name="delete_chore_title">Delete chore?</string>
     <string name="delete_chore_message">“%1$s” will be removed from every day it\'s scheduled on. This can\'t be undone.</string>

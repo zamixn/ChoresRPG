@@ -16,10 +16,24 @@
 
     <TextView
         android:id="@+id/descriptionTextView"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:layout_weight="1"
         android:contentDescription="@string/chore_description"
         android:gravity="center_vertical"
         android:text="TextView"
         android:textSize="@dimen/normal_text_size" />
+
+    <!-- Shown when the chore is completed on the day the list is for. -->
+    <ImageView
+        android:id="@+id/completedImage"
+        android:layout_width="@dimen/chore_completed_check_size"
+        android:layout_height="@dimen/chore_completed_check_size"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="@dimen/chore_completed_check_margin"
+        android:layout_marginEnd="@dimen/chore_completed_check_margin"
+        android:contentDescription="@string/chore_completed_check"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_complete"
+        app:tint="@color/completed_green" />
 </androidx.appcompat.widget.LinearLayoutCompat>

@@ -3,6 +3,7 @@ package com.zsoftware.choresrpg;
 import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +26,18 @@ public class Chore {
     public Long GetLastCompleted() { return LastCompleted; }
     public void SetLastCompleted(Long lastCompleted) { LastCompleted = lastCompleted; }
     public void Complete() { LastCompleted = System.currentTimeMillis(); }
+
+    // True when the chore was last completed on the same calendar day as the given date.
+    public boolean IsCompletedOn(Calendar date)
+    {
+        if (LastCompleted == null)
+            return false;
+        Calendar completed = Calendar.getInstance(date.getTimeZone());
+        completed.setTimeInMillis(LastCompleted);
+        return completed.get(Calendar.YEAR) == date.get(Calendar.YEAR)
+                && completed.get(Calendar.DAY_OF_YEAR) == date.get(Calendar.DAY_OF_YEAR);
+    }
+    public boolean IsCompletedToday() { return IsCompletedOn(Calendar.getInstance()); }
 
     // True when this chore was loaded from data saved before chores had ids; the loaded chore got a
     // new id, and the list has to be saved again so the id sticks.

@@ -68,7 +68,7 @@ public class DayActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         List<Chore> chores = SaveData.Instance().GetChoreList();
-        ChoreAdapter adapter = new ChoreAdapter(this, chores, Day);
+        ChoreAdapter adapter = new ChoreAdapter(this, chores, Day, GetDate());
         binding.dayChoresList.setAdapter(adapter);
         binding.dayChoresList.setOnItemClickListener((parent, view, position, id) ->
                 startActivity(ChoreActivity.CreateIntent(DayActivity.this, adapter.getItem(position))));
@@ -86,10 +86,19 @@ public class DayActivity extends AppCompatActivity {
         if (!getIntent().hasExtra(ExtraDateMillis))
             return getString(GetFullDayName(weekDay));
 
+        String dayAndMonth = new SimpleDateFormat("d MMMM", Locale.getDefault()).format(GetDate().getTime());
+        return getString(GetFullDayName(weekDay)) + ", " + dayAndMonth;
+    }
+
+    // The date this list is for: the date from the month view, or this week's date of the weekday
+    // from the week view. Chores completed on it get a green checkmark.
+    private Calendar GetDate()
+    {
+        if (!getIntent().hasExtra(ExtraDateMillis))
+            return Day.GetDateThisWeek();
         Calendar date = Calendar.getInstance();
         date.setTimeInMillis(getIntent().getLongExtra(ExtraDateMillis, 0));
-        String dayAndMonth = new SimpleDateFormat("d MMMM", Locale.getDefault()).format(date.getTime());
-        return getString(GetFullDayName(weekDay)) + ", " + dayAndMonth;
+        return date;
     }
 
     private static int GetFullDayName(WeekDay weekDay)

@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -33,7 +34,7 @@ import java.util.Date;
 import java.util.List;
 
 // Shows all data of one chore. Every property has an edit button; the chore can also be marked as
-// completed or deleted. Opened by tapping a chore in the week view or the day view.
+// completed (once per day) or deleted. Opened by tapping a chore in the week view or the day view.
 public class ChoreActivity extends AppCompatActivity {
 
     private static final String ExtraChoreId = "ChoreId";
@@ -60,6 +61,7 @@ public class ChoreActivity extends AppCompatActivity {
     private ActivityChoreBinding binding;
     private String ChoreId;
     private Chore CurrentChore;
+    private ColorStateList DefaultCompleteButtonTint;
 
     public static Intent CreateIntent(Context context, Chore chore)
     {
@@ -81,11 +83,17 @@ public class ChoreActivity extends AppCompatActivity {
 
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null)
+        {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            // The title bar shows its own icon + title views (see activity_chore.xml).
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
 
         ChoreId = getIntent().getStringExtra(ExtraChoreId);
+        DefaultCompleteButtonTint = binding.completeButton.getBackgroundTintList();
 
         binding.editIconButton.setOnClickListener(view -> ShowEditIconDialog());
+        binding.resetLastCompletedButton.setOnClickListener(view -> ResetLastCompleted());
         binding.editDescriptionButton.setOnClickListener(view -> ShowEditDescriptionDialog());
         binding.editDaysButton.setOnClickListener(view -> ShowEditDaysDialog());
         binding.editLastCompletedButton.setOnClickListener(view -> ShowEditLastCompletedDialog());
@@ -116,10 +124,8 @@ public class ChoreActivity extends AppCompatActivity {
     {
         Chore chore = CurrentChore;
         setTitle(chore.GetDescription());
-
+        binding.toolbarTitle.setText(chore.GetDescription());
         binding.choreIcon.setImageDrawable(GetIconCopy(chore));
-        binding.choreIconName.setText(getString(R.string.chore_icon_label, chore.GetIcon().name()));
-        binding.choreDescriptionText.setText(chore.GetDescription());
 
         WeekDay[] weekDays = WeekDay.values();
         List<String> scheduledDays = new ArrayList<>();
@@ -149,6 +155,22 @@ public class ChoreActivity extends AppCompatActivity {
         else
             binding.choreLastCompletedText.setText(
                     DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(new Date(lastCompleted)));
+        // Nothing to reset when the chore was never completed.
+        binding.resetLastCompletedButton.setEnabled(lastCompleted != null);
+        binding.resetLastCompletedButton.setAlpha(lastCompleted != null ? 1f : 0.3f);
+
+        // Completed today: green button that only tells the user it's already done.
+        if (chore.IsCompletedToday())
+        {
+            binding.completeButton.setBackgroundTintList(
+                    ColorStateList.valueOf(ContextCompat.getColor(this, R.color.completed_green)));
+            binding.completeButton.setText(R.string.completed_today);
+        }
+        else
+        {
+            binding.completeButton.setBackgroundTintList(DefaultCompleteButtonTint);
+            binding.completeButton.setText(R.string.complete_chore);
+        }
     }
 
     // Saves the edited chore and shows the new values.
@@ -160,9 +182,21 @@ public class ChoreActivity extends AppCompatActivity {
 
     private void CompleteChore()
     {
+        if (CurrentChore.IsCompletedToday())
+        {
+            Toast.makeText(this, R.string.chore_already_completed, Toast.LENGTH_SHORT).show();
+            return;
+        }
         CurrentChore.Complete();
         SaveChore();
         Toast.makeText(this, R.string.chore_completed, Toast.LENGTH_SHORT).show();
+    }
+
+    private void ResetLastCompleted()
+    {
+        CurrentChore.SetLastCompleted(null);
+        SaveChore();
+        Toast.makeText(this, R.string.last_completed_reset, Toast.LENGTH_SHORT).show();
     }
 
     private void ShowEditDescriptionDialog()
@@ -238,8 +272,8 @@ public class ChoreActivity extends AppCompatActivity {
                 .show();
     }
 
-    // Picks the date of the last completion. The time of day is kept from the old value (or now),
-    // "Clear" sets it back to never completed. Future dates can't be picked.
+    // Picks the date of the last completion. The time of day is kept from the old value (or now).
+    // Future dates can't be picked. (The reset button next to it clears the date.)
     private void ShowEditLastCompletedDialog()
     {
         Calendar current = Calendar.getInstance();
@@ -254,10 +288,6 @@ public class ChoreActivity extends AppCompatActivity {
             SaveChore();
         }, current.get(Calendar.YEAR), current.get(Calendar.MONTH), current.get(Calendar.DAY_OF_MONTH));
         dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
-        dialog.setButton(DialogInterface.BUTTON_NEUTRAL, getString(R.string.clear), (d, which) -> {
-            CurrentChore.SetLastCompleted(null);
-            SaveChore();
-        });
         dialog.show();
     }
 

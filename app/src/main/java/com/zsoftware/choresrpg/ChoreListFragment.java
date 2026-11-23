@@ -78,7 +78,7 @@ public class ChoreListFragment extends Fragment {
         {
             // The lists sit inside a ScrollView, so they are plain LinearLayouts filled with one row per
             // chore (a ListView in a ScrollView only shows its first row).
-            ChoreAdapter adapter = new ChoreAdapter(getContext(), chores, d);
+            ChoreAdapter adapter = new ChoreAdapter(getContext(), chores, d, d.GetDateThisWeek());
             LinearLayout list = ChoreLists.get(d);
             list.removeAllViews();
             for (int i = 0; i < adapter.getCount(); i++)

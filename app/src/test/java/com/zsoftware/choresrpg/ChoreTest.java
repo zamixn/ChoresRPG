@@ -12,6 +12,7 @@ import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Calendar;
 
 public class ChoreTest {
 
@@ -63,6 +64,61 @@ public class ChoreTest {
         long before = System.currentTimeMillis();
         chore.Complete();
         assertTrue(chore.GetLastCompleted() >= before);
+    }
+
+    @Test
+    public void IsCompletedOn_OnlyTheSameCalendarDay()
+    {
+        Chore chore = new Chore("Trash", Arrays.asList(WeekDay.Monday), ChoreIconEnum.Cleaning);
+        Calendar day = Calendar.getInstance();
+        day.set(2026, Calendar.NOVEMBER, 23, 21, 30);
+        assertFalse(chore.IsCompletedOn(day));
+
+        Calendar completed = (Calendar) day.clone();
+        completed.set(Calendar.HOUR_OF_DAY, 8);
+        chore.SetLastCompleted(completed.getTimeInMillis());
+        assertTrue(chore.IsCompletedOn(day));
+
+        Calendar nextDay = (Calendar) day.clone();
+        nextDay.add(Calendar.DAY_OF_MONTH, 1);
+        assertFalse(chore.IsCompletedOn(nextDay));
+
+        Calendar nextYear = (Calendar) day.clone();
+        nextYear.add(Calendar.YEAR, 1);
+        assertFalse(chore.IsCompletedOn(nextYear));
+    }
+
+    @Test
+    public void IsCompletedToday_AfterComplete()
+    {
+        Chore chore = new Chore("Trash", Arrays.asList(WeekDay.Monday), ChoreIconEnum.Cleaning);
+        assertFalse(chore.IsCompletedToday());
+        chore.Complete();
+        assertTrue(chore.IsCompletedToday());
+    }
+
+    @Test
+    public void WeekDay_FromCalendar_StartsOnMonday()
+    {
+        Calendar date = Calendar.getInstance();
+        date.set(2026, Calendar.NOVEMBER, 23); // a Monday
+        assertEquals(WeekDay.Monday, WeekDay.FromCalendar(date));
+        date.set(2026, Calendar.NOVEMBER, 29); // a Sunday
+        assertEquals(WeekDay.Sunday, WeekDay.FromCalendar(date));
+    }
+
+    @Test
+    public void WeekDay_GetDateThisWeek_IsInTheCurrentWeek()
+    {
+        Calendar today = Calendar.getInstance();
+        int todayIndex = WeekDay.FromCalendar(today).ordinal();
+        for (WeekDay day : WeekDay.values())
+        {
+            Calendar date = day.GetDateThisWeek();
+            assertEquals(day, WeekDay.FromCalendar(date));
+            long daysFromToday = Math.round((date.getTimeInMillis() - today.getTimeInMillis()) / 86400000.0);
+            assertEquals(day.ordinal() - todayIndex, daysFromToday);
+        }
     }
 
     @Test

@@ -16,14 +16,17 @@ import com.zsoftware.choresrpg.WeekDay;
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class ChoreAdapter extends BaseAdapter {
     private Context context;
     private final List<Chore> Chores;
     private WeekDay WeekDay;
+    // The date the list is for; chores completed on this date get a green checkmark.
+    private Calendar Date;
 
-    public ChoreAdapter(Context context, List<Chore> chores, WeekDay weekDay) {
+    public ChoreAdapter(Context context, List<Chore> chores, WeekDay weekDay, Calendar date) {
         this.context = context;
         this.Chores = new ArrayList();
         for (Chore c: chores) {
@@ -32,6 +35,7 @@ public class ChoreAdapter extends BaseAdapter {
         }
 
         this.WeekDay = weekDay;
+        this.Date = date;
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -55,6 +59,9 @@ public class ChoreAdapter extends BaseAdapter {
 
         TextView textView = (TextView)gridView.findViewById(R.id.descriptionTextView);
         textView.setText(chore.GetDescription());
+
+        ImageView completedView = (ImageView)gridView.findViewById(R.id.completedImage);
+        completedView.setVisibility(chore.IsCompletedOn(Date) ? View.VISIBLE : View.GONE);
 
         return gridView;
     }
