@@ -14,3 +14,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Claude Code (personal/local files; CLAUDE.md and .claude/settings.json stay tracked)
+/.claude/settings.local.json
+CLAUDE.local.md
