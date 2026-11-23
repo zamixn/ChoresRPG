@@ -133,19 +133,28 @@ public class MonthActivity extends AppCompatActivity {
                 if (dayOfMonth < 1 || dayOfMonth > daysInMonth)
                     cell = new View(this);
                 else
-                    cell = CreateDayCell(inflater, week, dayOfMonth, WeekDay.values()[column], chores, dayOfMonth == today);
+                    cell = CreateDayCell(inflater, week, month, dayOfMonth, WeekDay.values()[column], chores, dayOfMonth == today);
                 week.addView(cell, NewCellLayoutParams());
             }
             calendar.addView(week);
         }
     }
 
-    private View CreateDayCell(LayoutInflater inflater, ViewGroup parent, int dayOfMonth, WeekDay weekDay, List<Chore> chores, boolean isToday)
+    private View CreateDayCell(LayoutInflater inflater, ViewGroup parent, Calendar month, int dayOfMonth, WeekDay weekDay, List<Chore> chores, boolean isToday)
     {
         CalendarDayCellBinding cell = CalendarDayCellBinding.inflate(inflater, parent, false);
         cell.dayNumber.setText(String.valueOf(dayOfMonth));
         if (isToday)
             cell.getRoot().setBackgroundResource(R.drawable.calendar_day_today);
+
+        Calendar date = (Calendar) month.clone();
+        date.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        cell.getRoot().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(DayActivity.CreateIntent(MonthActivity.this, weekDay, date));
+            }
+        });
 
         for (Chore chore : chores)
         {

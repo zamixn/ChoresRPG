@@ -5,9 +5,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ListView;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
@@ -22,7 +23,7 @@ import java.util.List;
 public class ChoreListFragment extends Fragment {
 
     private FragmentChoreListBinding binding;
-    private Dictionary<WeekDay, ListView> ChoreLists;
+    private Dictionary<WeekDay, LinearLayout> ChoreLists;
     private Dictionary<WeekDay, ImageView> WeekImages;
 
     @Override
@@ -38,14 +39,14 @@ public class ChoreListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        ChoreLists = new Hashtable<WeekDay, ListView>();
-        ChoreLists.put(WeekDay.Monday, binding.mondayChoreListListView);
-        ChoreLists.put(WeekDay.Tuesday, binding.tuesdayChoreListListView);
-        ChoreLists.put(WeekDay.Wednesday, binding.wednesdayChoreListListView);
-        ChoreLists.put(WeekDay.Thursday, binding.thursdayChoreListListView);
-        ChoreLists.put(WeekDay.Friday, binding.fridayChoreListListView);
-        ChoreLists.put(WeekDay.Saturday, binding.saturdayChoreListListView);
-        ChoreLists.put(WeekDay.Sunday, binding.sundayChoreListListView);
+        ChoreLists = new Hashtable<WeekDay, LinearLayout>();
+        ChoreLists.put(WeekDay.Monday, binding.mondayChoreList);
+        ChoreLists.put(WeekDay.Tuesday, binding.tuesdayChoreList);
+        ChoreLists.put(WeekDay.Wednesday, binding.wednesdayChoreList);
+        ChoreLists.put(WeekDay.Thursday, binding.thursdayChoreList);
+        ChoreLists.put(WeekDay.Friday, binding.fridayChoreList);
+        ChoreLists.put(WeekDay.Saturday, binding.saturdayChoreList);
+        ChoreLists.put(WeekDay.Sunday, binding.sundayChoreList);
 
         WeekImages = new Hashtable<WeekDay, ImageView>();
         WeekImages.put(WeekDay.Monday, binding.mondayImageView);
@@ -59,7 +60,8 @@ public class ChoreListFragment extends Fragment {
         for (WeekDay d: WeekDay.values())
         {
             WeekDay wd = d;
-            WeekImages.get(d).setOnClickListener(view12 -> UpdateChoreListViews(wd));
+            WeekImages.get(d).setOnClickListener(view12 ->
+                    startActivity(DayActivity.CreateIntent(requireContext(), wd)));
         }
 
         binding.addChoreFab.setOnClickListener(view1 ->
@@ -68,24 +70,24 @@ public class ChoreListFragment extends Fragment {
         UpdateChoreListViews(GetCurrentWeekDay());
     }
 
+    // Fills every day's chore list (all are always visible; the fragment scrolls) and highlights the selected day.
     public void UpdateChoreListViews(WeekDay selectedWeek)
     {
         List<Chore> chores = SaveData.Instance().GetChoreList();
         for (WeekDay d: WeekDay.values())
         {
-            ChoreAdapter arrayAdapter =  new ChoreAdapter(getContext(), chores, d);
-            ListView lv = ChoreLists.get(d);
-            lv.setAdapter(arrayAdapter);
-            lv.setVisibility(View.GONE);
+            // The lists sit inside a ScrollView, so they are plain LinearLayouts filled with one row per
+            // chore (a ListView in a ScrollView only shows its first row).
+            ChoreAdapter adapter = new ChoreAdapter(getContext(), chores, d);
+            LinearLayout list = ChoreLists.get(d);
+            list.removeAllViews();
+            for (int i = 0; i < adapter.getCount(); i++)
+                list.addView(adapter.getView(i, null, list));
 
             ImageView iv = WeekImages.get(d);
-            iv.setImageDrawable(getResources().getDrawable(R.drawable.rounded_box));
+            int box = d == selectedWeek ? R.drawable.rounded_box_selected : R.drawable.rounded_box;
+            iv.setImageDrawable(ContextCompat.getDrawable(requireContext(), box));
         }
-
-        ListView currentDayView = ChoreLists.get(selectedWeek);
-        currentDayView.setVisibility(View.VISIBLE);
-        ImageView currentImageView = WeekImages.get(selectedWeek);
-        currentImageView.setImageDrawable(getResources().getDrawable(R.drawable.rounded_box_selected));
     }
 
     private WeekDay GetCurrentWeekDay()

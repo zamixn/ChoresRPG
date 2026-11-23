@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/calendar_day_background"
+    android:foreground="?attr/selectableItemBackground"
     android:minHeight="@dimen/calendar_day_min_height"
     android:orientation="vertical"
     android:padding="@dimen/calendar_day_padding">

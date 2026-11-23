@@ -14,6 +14,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:paddingBottom="@dimen/chore_list_bottom_padding"
             android:visibility="visible">
 
             <RelativeLayout
@@ -47,12 +48,11 @@
                     android:textSize="@dimen/big_text_size" />
             </RelativeLayout>
 
-            <ListView
-                android:id="@+id/monday_chore_list_ListView"
+            <LinearLayout
+                android:id="@+id/monday_chore_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible">
-            </ListView>
+                android:orientation="vertical" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -85,12 +85,11 @@
                     android:textSize="@dimen/big_text_size" />
             </RelativeLayout>
 
-            <ListView
-                android:id="@+id/tuesday_chore_list_ListView"
+            <LinearLayout
+                android:id="@+id/tuesday_chore_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible">
-            </ListView>
+                android:orientation="vertical" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -123,12 +122,11 @@
                     android:textSize="@dimen/big_text_size" />
             </RelativeLayout>
 
-            <ListView
-                android:id="@+id/wednesday_chore_list_ListView"
+            <LinearLayout
+                android:id="@+id/wednesday_chore_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible">
-            </ListView>
+                android:orientation="vertical" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -161,12 +159,11 @@
                     android:textSize="@dimen/big_text_size" />
             </RelativeLayout>
 
-            <ListView
-                android:id="@+id/thursday_chore_list_ListView"
+            <LinearLayout
+                android:id="@+id/thursday_chore_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible">
-            </ListView>
+                android:orientation="vertical" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -199,12 +196,11 @@
                     android:textSize="@dimen/big_text_size" />
             </RelativeLayout>
 
-            <ListView
-                android:id="@+id/friday_chore_list_ListView"
+            <LinearLayout
+                android:id="@+id/friday_chore_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible">
-            </ListView>
+                android:orientation="vertical" />
 
 
             <RelativeLayout
@@ -238,12 +234,11 @@
                     android:textSize="@dimen/big_text_size" />
             </RelativeLayout>
 
-            <ListView
-                android:id="@+id/saturday_chore_list_ListView"
+            <LinearLayout
+                android:id="@+id/saturday_chore_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible">
-            </ListView>
+                android:orientation="vertical" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -276,12 +271,11 @@
                     android:textSize="@dimen/big_text_size" />
             </RelativeLayout>
 
-            <ListView
-                android:id="@+id/sunday_chore_list_ListView"
+            <LinearLayout
+                android:id="@+id/sunday_chore_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible">
-            </ListView>
+                android:orientation="vertical" />
 
 
         </LinearLayout>
