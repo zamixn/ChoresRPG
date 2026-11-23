@@ -7,6 +7,7 @@ import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.zsoftware.choresrpg.adapters.ChoreAdapter;
@@ -18,27 +19,23 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-// Lists all chores of one day. Opened from the week view (a weekday) or the month view (a date).
+// Lists all chores of one day. Opened from the week or month view; the arrows move to the previous
+// or next day.
 public class DayActivity extends AppCompatActivity {
 
     private static final String ExtraWeekDay = "WeekDay";
     private static final String ExtraDateMillis = "DateMillis";
+    private static final String StateDateMillis = "DateMillis";
 
     private ActivityDayBinding binding;
+    // The day that is shown and its weekday (which chores are listed).
+    private Calendar CurrentDate;
     private WeekDay Day;
 
-    // For the week view: the day is only known as a weekday.
-    public static Intent CreateIntent(Context context, WeekDay weekDay)
+    public static Intent CreateIntent(Context context, WeekDay weekDay, Calendar date)
     {
         Intent intent = new Intent(context, DayActivity.class);
         intent.putExtra(ExtraWeekDay, weekDay.name());
-        return intent;
-    }
-
-    // For the month view: a specific date.
-    public static Intent CreateIntent(Context context, WeekDay weekDay, Calendar date)
-    {
-        Intent intent = CreateIntent(context, weekDay);
         intent.putExtra(ExtraDateMillis, date.getTimeInMillis());
         return intent;
     }
@@ -58,9 +55,18 @@ public class DayActivity extends AppCompatActivity {
         if (getSupportActionBar() != null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        Day = WeekDay.valueOf(getIntent().getStringExtra(ExtraWeekDay));
-        setTitle(GetDayTitle(Day));
+        CurrentDate = Calendar.getInstance();
+        if (savedInstanceState != null && savedInstanceState.containsKey(StateDateMillis))
+            CurrentDate.setTimeInMillis(savedInstanceState.getLong(StateDateMillis));
+        else if (getIntent().hasExtra(ExtraDateMillis))
+            CurrentDate.setTimeInMillis(getIntent().getLongExtra(ExtraDateMillis, 0));
+        else if (getIntent().hasExtra(ExtraWeekDay))
+            CurrentDate = WeekDay.valueOf(getIntent().getStringExtra(ExtraWeekDay)).GetDateThisWeek();
+        Day = WeekDay.FromCalendar(CurrentDate);
+
         binding.dayChoresList.setEmptyView(binding.noChoresText);
+        ScreenSetup.SetupPeriodNavigator(binding.periodNavigator, R.string.previous_day, R.string.next_day,
+                () -> ShowDay(-1), () -> ShowDay(1), this::ShowToday);
 
         ScreenSetup.ApplyFabInsets(binding.addChoreFab);
         binding.addChoreFab.setOnClickListener(view ->
@@ -71,8 +77,37 @@ public class DayActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        ShowChores();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(StateDateMillis, CurrentDate.getTimeInMillis());
+    }
+
+    private void ShowDay(int daysToMove)
+    {
+        CurrentDate.add(Calendar.DAY_OF_MONTH, daysToMove);
+        Day = WeekDay.FromCalendar(CurrentDate);
+        ShowChores();
+    }
+
+    private void ShowToday()
+    {
+        CurrentDate = Calendar.getInstance();
+        Day = WeekDay.FromCalendar(CurrentDate);
+        ShowChores();
+    }
+
+    // Title, relative label and the list of the shown day. Chores completed on it get a green checkmark.
+    private void ShowChores()
+    {
+        setTitle(GetDayTitle());
+        binding.periodNavigator.periodLabel.setText(GetRelativeDayLabel());
+
         List<Chore> chores = SaveData.Instance().GetChoreList();
-        ChoreAdapter adapter = new ChoreAdapter(this, chores, Day, GetDate());
+        ChoreAdapter adapter = new ChoreAdapter(this, chores, Day, CurrentDate);
         binding.dayChoresList.setAdapter(adapter);
         binding.dayChoresList.setOnItemClickListener((parent, view, position, id) ->
                 startActivity(ChoreActivity.CreateIntent(DayActivity.this, adapter.getItem(position))));
@@ -84,21 +119,45 @@ public class DayActivity extends AppCompatActivity {
         return true;
     }
 
-    // e.g. "Monday, 23 November". From the week view the date is that weekday's date this week.
-    private String GetDayTitle(WeekDay weekDay)
+    // e.g. "Monday, 23 November" (with the year when it isn't this year).
+    private String GetDayTitle()
     {
-        String dayAndMonth = new SimpleDateFormat("d MMMM", Locale.getDefault()).format(GetDate().getTime());
-        return getString(GetFullDayName(weekDay)) + ", " + dayAndMonth;
+        boolean isThisYear = CurrentDate.get(Calendar.YEAR) == Calendar.getInstance().get(Calendar.YEAR);
+        String pattern = isThisYear ? "d MMMM" : "d MMMM yyyy";
+        String dayAndMonth = new SimpleDateFormat(pattern, Locale.getDefault()).format(CurrentDate.getTime());
+        return getString(GetFullDayName(Day)) + ", " + dayAndMonth;
     }
 
-    // The date this list is for: the date from the month view, or this week's date of the weekday
-    // from the week view. Chores completed on it get a green checkmark.
-    private Calendar GetDate()
+    // "Today", "Tomorrow", "Yesterday", "In 3 days" or "3 days ago".
+    private String GetRelativeDayLabel()
     {
-        if (!getIntent().hasExtra(ExtraDateMillis))
-            return Day.GetDateThisWeek();
-        Calendar date = Calendar.getInstance();
-        date.setTimeInMillis(getIntent().getLongExtra(ExtraDateMillis, 0));
+        int days = DaysFromToday(CurrentDate);
+        if (days == 0)
+            return getString(R.string.today);
+        if (days == 1)
+            return getString(R.string.tomorrow);
+        if (days == -1)
+            return getString(R.string.yesterday);
+        if (days > 0)
+            return getResources().getQuantityString(R.plurals.days_from_now, days, days);
+        return getResources().getQuantityString(R.plurals.days_ago, -days, -days);
+    }
+
+    // Whole calendar days between today and the date (negative in the past).
+    private static int DaysFromToday(Calendar date)
+    {
+        Calendar today = StartOfDay(Calendar.getInstance());
+        Calendar day = StartOfDay((Calendar) date.clone());
+        // Rounded, because a daylight saving change makes a day 23 or 25 hours long.
+        return (int) Math.round((day.getTimeInMillis() - today.getTimeInMillis()) / 86400000.0);
+    }
+
+    private static Calendar StartOfDay(Calendar date)
+    {
+        date.set(Calendar.HOUR_OF_DAY, 0);
+        date.set(Calendar.MINUTE, 0);
+        date.set(Calendar.SECOND, 0);
+        date.set(Calendar.MILLISECOND, 0);
         return date;
     }
 

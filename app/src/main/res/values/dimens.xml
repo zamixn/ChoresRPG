@@ -26,6 +26,8 @@
     <dimen name="calendar_padding">4dp</dimen>
     <dimen name="calendar_day_width">120dp</dimen>
     <dimen name="calendar_header_elevation">2dp</dimen>
+    <dimen name="period_navigator_button_size">48dp</dimen>
+    <dimen name="period_navigator_text_size">18sp</dimen>
     <dimen name="calendar_day_min_height">112dp</dimen>
     <dimen name="calendar_day_padding">6dp</dimen>
     <dimen name="calendar_day_number_text_size">16sp</dimen>

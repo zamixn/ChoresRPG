@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
@@ -28,7 +29,8 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-// Monthly view: a calendar of the current month with each day's chores listed in its cell.
+// Monthly view: a calendar of one month (the current one at first; arrows move between months) with
+// each day's chores listed in its cell.
 public class MonthActivity extends AppCompatActivity {
 
     private static final int DaysInWeek = 7;
@@ -42,8 +44,14 @@ public class MonthActivity extends AppCompatActivity {
             R.string.week_day_button_sunday
     };
 
+    private static final String StateDisplayedMonth = "DisplayedMonth";
+
     private ActivityMonthBinding binding;
-    private boolean ScrolledToToday = false;
+    // First day of the month that is shown; the arrows move it one month back or forward.
+    private Calendar DisplayedMonth;
+    // Set when the shown month changes (and when the view opens): the next build scrolls to today in
+    // the current month, or to the top-left corner in other months.
+    private boolean ScrollPending = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,10 +65,44 @@ public class MonthActivity extends AppCompatActivity {
         ScreenSetup.ApplySafeAreaInsets(binding.appBar, binding.contentMonth);
 
         setSupportActionBar(binding.toolbar);
+        setTitle(R.string.monthly_view);
+
+        DisplayedMonth = GetFirstOfMonth(Calendar.getInstance());
+        if (savedInstanceState != null && savedInstanceState.containsKey(StateDisplayedMonth))
+            DisplayedMonth.setTimeInMillis(savedInstanceState.getLong(StateDisplayedMonth));
+        ScreenSetup.SetupPeriodNavigator(binding.periodNavigator, R.string.previous_month, R.string.next_month,
+                () -> ShowMonth(-1), () -> ShowMonth(1), this::ShowCurrentMonth);
 
         ScreenSetup.ApplyFabInsets(binding.addChoreFab);
         binding.addChoreFab.setOnClickListener(view ->
                 startActivity(AddChoreActivity.CreateIntent(MonthActivity.this)));
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(StateDisplayedMonth, DisplayedMonth.getTimeInMillis());
+    }
+
+    private void ShowMonth(int monthsToMove)
+    {
+        DisplayedMonth.add(Calendar.MONTH, monthsToMove);
+        ScrollPending = true;
+        BuildCalendar();
+    }
+
+    private void ShowCurrentMonth()
+    {
+        DisplayedMonth = GetFirstOfMonth(Calendar.getInstance());
+        ScrollPending = true;
+        BuildCalendar();
+    }
+
+    private static Calendar GetFirstOfMonth(Calendar date)
+    {
+        Calendar first = (Calendar) date.clone();
+        first.set(Calendar.DAY_OF_MONTH, 1);
+        return first;
     }
 
     // Rebuilt on every return, so chores edited or deleted in the day or chore view show up correctly.
@@ -116,13 +158,16 @@ public class MonthActivity extends AppCompatActivity {
         calendar.removeAllViews();
         LayoutInflater inflater = getLayoutInflater();
 
-        Calendar month = Calendar.getInstance();
-        int today = month.get(Calendar.DAY_OF_MONTH);
-        month.set(Calendar.DAY_OF_MONTH, 1);
+        Calendar month = (Calendar) DisplayedMonth.clone();
+        Calendar now = Calendar.getInstance();
+        boolean isCurrentMonth = now.get(Calendar.YEAR) == month.get(Calendar.YEAR)
+                && now.get(Calendar.MONTH) == month.get(Calendar.MONTH);
+        // Day of the month to highlight as today; -1 when another month is shown.
+        int today = isCurrentMonth ? now.get(Calendar.DAY_OF_MONTH) : -1;
         int daysInMonth = month.getActualMaximum(Calendar.DAY_OF_MONTH);
         int firstColumn = ToWeekDay(month.get(Calendar.DAY_OF_WEEK)).ordinal();
 
-        setTitle(GetMonthTitle(month));
+        binding.periodNavigator.periodLabel.setText(GetMonthTitle(month));
 
         // Weekday names live in their own row above the vertical scroll, so they stay on top.
         LinearLayout header = binding.calendarHeader;
@@ -155,17 +200,24 @@ public class MonthActivity extends AppCompatActivity {
             calendar.addView(week);
         }
 
-        // When the view opens, center it on today. Not on later rebuilds, so coming back from a day
-        // keeps the scroll position.
-        if (!ScrolledToToday && todayCell != null)
+        // When the view opens or another month is picked: center on today in the current month,
+        // start at the top-left in other months. Not on other rebuilds, so coming back from a day keeps
+        // the scroll position.
+        if (ScrollPending)
         {
-            ScrolledToToday = true;
+            ScrollPending = false;
             View cellToCenter = todayCell;
             calendar.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                 @Override
                 public void onGlobalLayout() {
                     calendar.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                    CenterOn(cellToCenter);
+                    if (cellToCenter != null)
+                        CenterOn(cellToCenter);
+                    else
+                    {
+                        binding.calendarHorizontalScroll.scrollTo(0, 0);
+                        binding.calendarScroll.scrollTo(0, 0);
+                    }
                 }
             });
         }
@@ -177,7 +229,7 @@ public class MonthActivity extends AppCompatActivity {
     {
         Rect cellRect = new Rect(0, 0, cell.getWidth(), cell.getHeight());
         binding.calendar.offsetDescendantRectToMyCoords(cell, cellRect);
-        binding.contentMonth.scrollTo(cellRect.centerX() - binding.contentMonth.getWidth() / 2, 0);
+        binding.calendarHorizontalScroll.scrollTo(cellRect.centerX() - binding.calendarHorizontalScroll.getWidth() / 2, 0);
         binding.calendarScroll.scrollTo(0, cellRect.centerY() - binding.calendarScroll.getHeight() / 2);
     }
 

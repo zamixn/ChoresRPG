@@ -22,13 +22,24 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- The calendar is wider than the screen. The outer view scrolls sideways and moves the weekday
-         header and the weeks together; only the weeks scroll vertically, so the header stays on top. -->
-    <HorizontalScrollView
+    <LinearLayout
         android:id="@+id/content_month"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    <include
+        android:id="@+id/period_navigator"
+        layout="@layout/period_navigator" />
+
+    <!-- The calendar is wider than the screen. This view scrolls sideways and moves the weekday
+         header and the weeks together; only the weeks scroll vertically, so the header stays on top. -->
+    <HorizontalScrollView
+        android:id="@+id/calendar_horizontal_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -66,6 +77,8 @@
         </LinearLayout>
 
     </HorizontalScrollView>
+
+    </LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/add_chore_fab"

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bar under the toolbar of the month, week and day views: previous / current period / next.
+     Tapping the label jumps back to the current month, week or day. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/colorBackground"
+    android:elevation="@dimen/calendar_header_elevation"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <ImageButton
+        android:id="@+id/previous_button"
+        android:layout_width="@dimen/period_navigator_button_size"
+        android:layout_height="@dimen/period_navigator_button_size"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_previous"
+        android:contentDescription="@string/previous" />
+
+    <TextView
+        android:id="@+id/period_label"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="?attr/selectableItemBackground"
+        android:gravity="center"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textSize="@dimen/period_navigator_text_size"
+        android:textStyle="bold"
+        tools:text="November 2026" />
+
+    <ImageButton
+        android:id="@+id/next_button"
+        android:layout_width="@dimen/period_navigator_button_size"
+        android:layout_height="@dimen/period_navigator_button_size"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_next"
+        android:contentDescription="@string/next" />
+
+</LinearLayout>

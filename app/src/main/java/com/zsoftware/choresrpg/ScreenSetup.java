@@ -1,5 +1,6 @@
 package com.zsoftware.choresrpg;
 
+import android.content.Context;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -11,7 +12,10 @@ import androidx.core.view.OnApplyWindowInsetsListener;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-// Shared setup for the app's activities: safe-area padding and the view switch buttons.
+import com.zsoftware.choresrpg.databinding.PeriodNavigatorBinding;
+
+// Shared setup for the app's screens: safe-area padding, the view switch buttons and the
+// previous / next bar.
 public class ScreenSetup {
     private static final int INSET_TYPES = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
 
@@ -60,6 +64,19 @@ public class ScreenSetup {
                 return windowInsets;
             }
         });
+    }
+
+    // Wires the previous / next bar (period_navigator.xml) of the month, week and day views.
+    // Tapping the label goes back to the current period.
+    public static void SetupPeriodNavigator(PeriodNavigatorBinding navigator, int previousDescription, int nextDescription,
+                                            Runnable onPrevious, Runnable onNext, Runnable onCurrent)
+    {
+        Context context = navigator.getRoot().getContext();
+        navigator.previousButton.setContentDescription(context.getString(previousDescription));
+        navigator.nextButton.setContentDescription(context.getString(nextDescription));
+        navigator.previousButton.setOnClickListener(view -> onPrevious.run());
+        navigator.nextButton.setOnClickListener(view -> onNext.run());
+        navigator.periodLabel.setOnClickListener(view -> onCurrent.run());
     }
 
     // Dims and disables the toolbar button of the view that is already open.
