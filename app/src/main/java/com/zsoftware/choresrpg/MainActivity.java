@@ -22,7 +22,6 @@ import com.zsoftware.choresrpg.databinding.ActivityMainBinding;
 
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -78,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         if(id == R.id.action_delete_all_save_data)
         {
             SaveData.Instance().DeleteAll();
-            Toast.makeText(this, R.string.all_data_deleted, Toast.LENGTH_SHORT).show();
+            ShortToast.Show(this, R.string.all_data_deleted);
             return true;
         }
 

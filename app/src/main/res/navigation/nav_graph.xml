@@ -8,7 +8,7 @@
     <fragment
         android:id="@+id/FirstFragment"
         android:name="com.zsoftware.choresrpg.ChoreListFragment"
-        android:label="@string/first_fragment_label"
+        android:label="@string/weekly_view"
         tools:layout="@layout/fragment_chore_list">
 
         <action
@@ -31,7 +31,7 @@
     <fragment
         android:id="@+id/addChoreFragment"
         android:name="com.zsoftware.choresrpg.AddChoreFragment"
-        android:label="fragment_add_chore_fragment"
+        android:label="@string/add_chore"
         tools:layout="@layout/fragment_add_chore_fragment" >
         <action
             android:id="@+id/action_addChoreFragment_to_FirstFragment"

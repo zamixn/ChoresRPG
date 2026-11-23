@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.Window;
 import android.widget.GridView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
@@ -107,7 +106,7 @@ public class ChoreActivity extends AppCompatActivity {
         CurrentChore = SaveData.Instance().GetChore(ChoreId);
         if (CurrentChore == null)
         {
-            Toast.makeText(this, R.string.chore_not_found, Toast.LENGTH_SHORT).show();
+            ShortToast.Show(this, R.string.chore_not_found);
             finish();
             return;
         }
@@ -184,19 +183,19 @@ public class ChoreActivity extends AppCompatActivity {
     {
         if (CurrentChore.IsCompletedToday())
         {
-            Toast.makeText(this, R.string.chore_already_completed, Toast.LENGTH_SHORT).show();
+            ShortToast.Show(this, R.string.chore_already_completed);
             return;
         }
         CurrentChore.Complete();
         SaveChore();
-        Toast.makeText(this, R.string.chore_completed, Toast.LENGTH_SHORT).show();
+        ShortToast.Show(this, R.string.chore_completed);
     }
 
     private void ResetLastCompleted()
     {
         CurrentChore.SetLastCompleted(null);
         SaveChore();
-        Toast.makeText(this, R.string.last_completed_reset, Toast.LENGTH_SHORT).show();
+        ShortToast.Show(this, R.string.last_completed_reset);
     }
 
     private void ShowEditDescriptionDialog()
@@ -302,7 +301,7 @@ public class ChoreActivity extends AppCompatActivity {
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(R.string.delete, (d, which) -> {
                     SaveData.Instance().DeleteChore(CurrentChore.GetId());
-                    Toast.makeText(this, R.string.chore_deleted, Toast.LENGTH_SHORT).show();
+                    ShortToast.Show(this, R.string.chore_deleted);
                     finish();
                 })
                 .show();

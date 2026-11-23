@@ -10,7 +10,6 @@ import androidx.navigation.fragment.NavHostFragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
 import com.zsoftware.choresrpg.choreicon.ChoreIconSelectorFragment;
@@ -70,7 +69,7 @@ public class AddChoreFragment extends Fragment {
                 chores.add(c);
                 SaveData.Instance().SaveChoreList(chores);
 
-                Toast.makeText(getContext(), R.string.chore_saved, Toast.LENGTH_SHORT).show();
+                ShortToast.Show(getContext(), R.string.chore_saved);
 
                 NavHostFragment.findNavController(AddChoreFragment.this)
                         .navigate(R.id.action_addChoreFragment_to_FirstFragment);

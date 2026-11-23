@@ -22,19 +22,49 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.core.widget.NestedScrollView
+    <!-- The calendar is wider than the screen. The outer view scrolls sideways and moves the weekday
+         header and the weeks together; only the weeks scroll vertically, so the header stays on top. -->
+    <HorizontalScrollView
         android:id="@+id/content_month"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
-            android:id="@+id/calendar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="@dimen/calendar_padding" />
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-    </androidx.core.widget.NestedScrollView>
+            <LinearLayout
+                android:id="@+id/calendar_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/colorBackground"
+                android:elevation="@dimen/calendar_header_elevation"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/calendar_padding"
+                android:paddingTop="@dimen/calendar_padding"
+                android:paddingEnd="@dimen/calendar_padding" />
+
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/calendar_scroll"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:id="@+id/calendar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="@dimen/calendar_padding"
+                    android:paddingEnd="@dimen/calendar_padding"
+                    android:paddingBottom="@dimen/calendar_padding" />
+
+            </androidx.core.widget.NestedScrollView>
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -2,6 +2,7 @@ package com.zsoftware.choresrpg;
 
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -9,9 +10,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
@@ -42,6 +43,7 @@ public class MonthActivity extends AppCompatActivity {
     };
 
     private ActivityMonthBinding binding;
+    private boolean ScrolledToToday = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +90,7 @@ public class MonthActivity extends AppCompatActivity {
         if(id == R.id.action_delete_all_save_data)
         {
             SaveData.Instance().DeleteAll();
-            Toast.makeText(this, R.string.all_data_deleted, Toast.LENGTH_SHORT).show();
+            ShortToast.Show(this, R.string.all_data_deleted);
             BuildCalendar();
             return true;
         }
@@ -118,17 +120,19 @@ public class MonthActivity extends AppCompatActivity {
 
         setTitle(GetMonthTitle(month));
 
-        LinearLayout header = NewWeekRow();
+        // Weekday names live in their own row above the vertical scroll, so they stay on top.
+        LinearLayout header = binding.calendarHeader;
+        header.removeAllViews();
         for (int column = 0; column < DaysInWeek; column++)
         {
             TextView dayName = (TextView) inflater.inflate(R.layout.calendar_week_day_header, header, false);
             dayName.setText(WeekDayHeaderStrings[column]);
             header.addView(dayName, NewCellLayoutParams());
         }
-        calendar.addView(header);
 
         List<Chore> chores = SaveData.Instance().GetChoreList();
         int rowCount = (firstColumn + daysInMonth + DaysInWeek - 1) / DaysInWeek;
+        View todayCell = null;
         for (int row = 0; row < rowCount; row++)
         {
             LinearLayout week = NewWeekRow();
@@ -141,9 +145,36 @@ public class MonthActivity extends AppCompatActivity {
                 else
                     cell = CreateDayCell(inflater, week, month, dayOfMonth, WeekDay.values()[column], chores, dayOfMonth == today);
                 week.addView(cell, NewCellLayoutParams());
+                if (dayOfMonth == today)
+                    todayCell = cell;
             }
             calendar.addView(week);
         }
+
+        // When the view opens, center it on today. Not on later rebuilds, so coming back from a day
+        // keeps the scroll position.
+        if (!ScrolledToToday && todayCell != null)
+        {
+            ScrolledToToday = true;
+            View cellToCenter = todayCell;
+            calendar.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                @Override
+                public void onGlobalLayout() {
+                    calendar.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                    CenterOn(cellToCenter);
+                }
+            });
+        }
+    }
+
+    // Scrolls so the cell is in the middle of the screen, as far as the calendar's edges allow
+    // (scrollTo stops at the first and last column/week).
+    private void CenterOn(View cell)
+    {
+        Rect cellRect = new Rect(0, 0, cell.getWidth(), cell.getHeight());
+        binding.calendar.offsetDescendantRectToMyCoords(cell, cellRect);
+        binding.contentMonth.scrollTo(cellRect.centerX() - binding.contentMonth.getWidth() / 2, 0);
+        binding.calendarScroll.scrollTo(0, cellRect.centerY() - binding.calendarScroll.getHeight() / 2);
     }
 
     private View CreateDayCell(LayoutInflater inflater, ViewGroup parent, Calendar month, int dayOfMonth, WeekDay weekDay, List<Chore> chores, boolean isToday)
@@ -193,14 +224,16 @@ public class MonthActivity extends AppCompatActivity {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setLayoutParams(new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         return row;
     }
 
-    // Seven equal-width columns; cells stretch to the tallest cell in the week so the borders line up.
+    // Seven fixed-width columns (wider than most screens, so the calendar scrolls sideways);
+    // cells stretch to the tallest cell in the week so the borders line up.
     private LinearLayout.LayoutParams NewCellLayoutParams()
     {
-        return new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
+        int width = getResources().getDimensionPixelSize(R.dimen.calendar_day_width);
+        return new LinearLayout.LayoutParams(width, LinearLayout.LayoutParams.MATCH_PARENT);
     }
 
     // Calendar.DAY_OF_WEEK runs Sunday (1) .. Saturday (7); WeekDay runs Monday .. Sunday.
