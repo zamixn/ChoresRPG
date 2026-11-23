@@ -1,5 +1,6 @@
 package com.zsoftware.choresrpg;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -7,12 +8,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.OnApplyWindowInsetsListener;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import android.view.View;
 
@@ -44,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        ApplySafeAreaInsets();
+        ScreenSetup.ApplySafeAreaInsets(binding.appBar, binding.contentMain.getRoot());
 
         setSupportActionBar(binding.toolbar);
 
@@ -53,38 +49,11 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
     }
 
-    // Keeps the toolbar below the status bar / camera cutout and the screen content
-    // (including buttons at the bottom) above the navigation bar and the keyboard.
-    private void ApplySafeAreaInsets()
-    {
-        final int insetTypes = WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout();
-
-        ViewCompat.setOnApplyWindowInsetsListener(binding.appBar, new OnApplyWindowInsetsListener() {
-            @NonNull
-            @Override
-            public WindowInsetsCompat onApplyWindowInsets(@NonNull View view, @NonNull WindowInsetsCompat windowInsets) {
-                Insets bars = windowInsets.getInsets(insetTypes);
-                view.setPadding(bars.left, bars.top, bars.right, 0);
-                return windowInsets;
-            }
-        });
-
-        ViewCompat.setOnApplyWindowInsetsListener(binding.contentMain.getRoot(), new OnApplyWindowInsetsListener() {
-            @NonNull
-            @Override
-            public WindowInsetsCompat onApplyWindowInsets(@NonNull View view, @NonNull WindowInsetsCompat windowInsets) {
-                Insets bars = windowInsets.getInsets(insetTypes);
-                Insets ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
-                view.setPadding(bars.left, 0, bars.right, Math.max(bars.bottom, ime.bottom));
-                return windowInsets;
-            }
-        });
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        ScreenSetup.MarkCurrentView(menu, R.id.action_weekly_view);
         return true;
     }
 
@@ -100,10 +69,16 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
 
+        if(id == R.id.action_monthly_view)
+        {
+            startActivity(new Intent(this, MonthActivity.class));
+            return true;
+        }
+
         if(id == R.id.action_delete_all_save_data)
         {
             SaveData.Instance().DeleteAll();
-            Toast.makeText(this, "All data deleted", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.all_data_deleted, Toast.LENGTH_SHORT).show();
             return true;
         }
 

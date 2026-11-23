@@ -21,17 +21,21 @@ public class SaveData {
         return _Instance;
     }
     private SharedPreferences SharedPreferences;
+    // Chores were first saved with Activity.getPreferences() from MainActivity, which uses a
+    // preferences file named after that activity. Open that same file by name so every activity
+    // (MainActivity, MonthActivity) reads and writes the same chore list.
+    private static final String PreferencesFileName = "MainActivity";
     public static void Initialize(Activity context)
     {
         _Instance = new SaveData();
-        _Instance.SharedPreferences = context.getPreferences(MODE_PRIVATE);
+        _Instance.SharedPreferences = context.getSharedPreferences(PreferencesFileName, MODE_PRIVATE);
     }
 
     public List<Chore> GetChoreList()
     {
         ArrayList<Chore> chores = new ArrayList<Chore>();
         String s = SharedPreferences.getString(SaveKey, "");
-        if(s == "")
+        if(s.isEmpty())
             return chores;
         String[] strings = s.split(";");
         for (int i = 0; i < strings.length; i++)

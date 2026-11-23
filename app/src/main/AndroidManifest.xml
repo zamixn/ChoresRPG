@@ -27,6 +27,11 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
+        <activity
+            android:name=".MonthActivity"
+            android:exported="false"
+            android:label="@string/monthly_view"
+            android:theme="@style/Theme.ChoresRPG.NoActionBar" />
     </application>
 
 </manifest>

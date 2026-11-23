@@ -31,5 +31,8 @@
     <string name="week_day_button_sunday_full">Sunday</string>
 
     <string name="delete_all_save_data">Delete All Save Data</string>
+    <string name="all_data_deleted">All data deleted</string>
+    <string name="monthly_view">Monthly view</string>
+    <string name="weekly_view">Weekly view</string>
     <string name="chore_icon">Chore Icon</string>
 </resources>
