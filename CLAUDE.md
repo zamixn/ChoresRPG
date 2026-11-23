@@ -6,7 +6,7 @@ ChoresRPG is an Android app written in Java (package `com.zsoftware.choresrpg`).
 
 1. **Follow the project's coding style** (see below). Match the code around your change, even where it differs from standard Java/Android conventions.
 2. **Never push to the remote repository.** If a push seems needed, tell the user and let them do it or approve it.
-3. **You may commit, but ask before each commit.** Show what will be committed and the proposed message first.
+3. **Don't commit. The user commits changes themselves.** Run `git commit` only when the user explicitly asks for a commit in their current message. Don't offer to commit or ask whether to commit; leave finished work uncommitted.
 4. **Do not deploy or install to any connected device or emulator** (no `installDebug`, `adb install`, `connectedAndroidTest`, etc.). If testing on a device is needed, ask first. Local builds and JVM unit tests (`gradlew assembleDebug`, `gradlew test`) are fine.
 
 ## Coding style
