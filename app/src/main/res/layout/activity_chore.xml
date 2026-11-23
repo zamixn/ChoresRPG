@@ -34,7 +34,7 @@
                     android:background="@drawable/toolbar_icon_background"
                     android:contentDescription="@string/chore_icon"
                     android:padding="@dimen/chore_view_toolbar_icon_padding"
-                    tools:src="@drawable/floor_mop" />
+                    tools:src="@drawable/chore_icon_cleaning_services" />
 
                 <ImageButton
                     android:id="@+id/edit_icon_button"

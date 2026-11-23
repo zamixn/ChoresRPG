@@ -12,7 +12,7 @@
         android:contentDescription="@string/chore_icon"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/breath" />
+        app:srcCompat="@drawable/chore_icon_cleaning_services" />
 
     <TextView
         android:id="@+id/descriptionTextView"

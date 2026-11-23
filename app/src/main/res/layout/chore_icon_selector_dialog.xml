@@ -1,13 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Scrollable grid of all chore icons (see ChoreIconPicker). -->
-<GridView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/gridView"
+<!-- Icon picker (see ChoreIconPicker): search field on top, scrollable grid of matching icons below. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:clipToPadding="false"
-    android:columnWidth="@dimen/icon_picker_column_width"
-    android:gravity="center"
-    android:numColumns="auto_fit"
-    android:padding="@dimen/icon_picker_padding"
-    android:scrollbarStyle="outsideOverlay"
-    android:stretchMode="spacingWidthUniform" />
+    android:orientation="vertical">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dialog_content_padding"
+        android:layout_marginEnd="@dimen/dialog_content_padding"
+        android:hint="@string/search_icons"
+        app:endIconMode="clear_text"
+        app:startIconDrawable="@drawable/ic_search">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/icon_search"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLines="1" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <GridView
+            android:id="@+id/gridView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:columnWidth="@dimen/icon_picker_column_width"
+            android:gravity="center"
+            android:numColumns="auto_fit"
+            android:padding="@dimen/icon_picker_padding"
+            android:scrollbarStyle="outsideOverlay"
+            android:stretchMode="spacingWidthUniform" />
+
+        <TextView
+            android:id="@+id/no_icons_text"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/no_icons_found"
+            android:visibility="gone" />
+    </FrameLayout>
+
+</LinearLayout>

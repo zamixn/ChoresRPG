@@ -72,7 +72,7 @@ public class Chore {
     {
         String[] parts = s.split("/");
         Chore c = new Chore(parts[0]);
-        c.Icon = ChoreIconEnum.valueOf(parts[1]);
+        c.Icon = ChoreIconEnum.FromSavedName(parts[1]);
         for (int i = 2; i < 9 && i < parts.length; i++)
         {
             String w = parts[i];

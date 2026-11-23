@@ -9,6 +9,6 @@
         android:id="@+id/icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/breath"
+        android:src="@drawable/chore_icon_cleaning_services"
         />
 </FrameLayout>

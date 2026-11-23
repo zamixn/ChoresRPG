@@ -19,8 +19,8 @@ public class ChoreTest {
     @Test
     public void NewChores_GetUniqueIds()
     {
-        Chore a = new Chore("A", Arrays.asList(WeekDay.Monday), ChoreIconEnum.Cleaning);
-        Chore b = new Chore("B", Arrays.asList(WeekDay.Monday), ChoreIconEnum.Cleaning);
+        Chore a = new Chore("A", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
+        Chore b = new Chore("B", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
         assertNotNull(a.GetId());
         assertNotEquals(a.GetId(), b.GetId());
     }
@@ -28,7 +28,7 @@ public class ChoreTest {
     @Test
     public void RoundTrip_KeepsIdAndLastCompleted()
     {
-        Chore chore = new Chore("Mop the floor", Arrays.asList(WeekDay.Wednesday, WeekDay.Saturday), ChoreIconEnum.FloorMop);
+        Chore chore = new Chore("Mop the floor", Arrays.asList(WeekDay.Wednesday, WeekDay.Saturday), ChoreIconEnum.Kitchen);
         chore.SetLastCompleted(1795000000000L);
 
         Chore loaded = Chore.Parse(chore.ToSaveDataString());
@@ -41,7 +41,7 @@ public class ChoreTest {
     @Test
     public void RoundTrip_NeverCompleted()
     {
-        Chore chore = new Chore("Dishes", Arrays.asList(WeekDay.values()), ChoreIconEnum.Cleaning);
+        Chore chore = new Chore("Dishes", Arrays.asList(WeekDay.values()), ChoreIconEnum.CleaningServices);
         assertNull(Chore.Parse(chore.ToSaveDataString()).GetLastCompleted());
     }
 
@@ -51,6 +51,7 @@ public class ChoreTest {
         // Saved before chores had ids or completion dates.
         Chore loaded = Chore.Parse("Mop/FloorMop/null/Tuesday/null/null/null/Saturday/null");
         assertEquals("Mop", loaded.GetDescription());
+        assertEquals(ChoreIconEnum.CleaningServices, loaded.GetIcon());
         assertEquals(Arrays.asList(WeekDay.Tuesday, WeekDay.Saturday), loaded.GetWeekDays());
         assertNotNull(loaded.GetId());
         assertNull(loaded.GetLastCompleted());
@@ -60,7 +61,7 @@ public class ChoreTest {
     @Test
     public void Complete_SetsLastCompletedToNow()
     {
-        Chore chore = new Chore("Trash", Arrays.asList(WeekDay.Monday), ChoreIconEnum.Cleaning);
+        Chore chore = new Chore("Trash", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
         long before = System.currentTimeMillis();
         chore.Complete();
         assertTrue(chore.GetLastCompleted() >= before);
@@ -69,7 +70,7 @@ public class ChoreTest {
     @Test
     public void IsCompletedOn_OnlyTheSameCalendarDay()
     {
-        Chore chore = new Chore("Trash", Arrays.asList(WeekDay.Monday), ChoreIconEnum.Cleaning);
+        Chore chore = new Chore("Trash", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
         Calendar day = Calendar.getInstance();
         day.set(2026, Calendar.NOVEMBER, 23, 21, 30);
         assertFalse(chore.IsCompletedOn(day));
@@ -91,7 +92,7 @@ public class ChoreTest {
     @Test
     public void IsCompletedToday_AfterComplete()
     {
-        Chore chore = new Chore("Trash", Arrays.asList(WeekDay.Monday), ChoreIconEnum.Cleaning);
+        Chore chore = new Chore("Trash", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
         assertFalse(chore.IsCompletedToday());
         chore.Complete();
         assertTrue(chore.IsCompletedToday());
@@ -122,11 +123,15 @@ public class ChoreTest {
     }
 
     @Test
-    public void Icons_OriginalSavedNamesStillLoad()
+    public void Icons_RemovedIconNamesLoadAsReplacements()
     {
-        // Chores saved before the icon set grew use these names.
-        for (String name : new String[] { "Cleaning", "Sigh", "FloorMop", "Fridge" })
-            assertEquals(name, ChoreIconEnum.valueOf(name).name());
+        // Chores saved with the app's first four icons, which were removed.
+        assertEquals(ChoreIconEnum.CleaningServices, ChoreIconEnum.FromSavedName("Cleaning"));
+        assertEquals(ChoreIconEnum.Spa, ChoreIconEnum.FromSavedName("Sigh"));
+        assertEquals(ChoreIconEnum.CleaningServices, ChoreIconEnum.FromSavedName("FloorMop"));
+        assertEquals(ChoreIconEnum.Kitchen, ChoreIconEnum.FromSavedName("Fridge"));
+        assertEquals(ChoreIconEnum.Kitchen, Chore.Parse("Defrost/Fridge/Monday/null/null/null/null/null/null").GetIcon());
+        assertEquals(ChoreIconEnum.Pets, ChoreIconEnum.FromSavedName("Pets"));
         assertTrue(ChoreIconEnum.values().length > 100);
     }
 
@@ -141,9 +146,38 @@ public class ChoreTest {
     }
 
     @Test
+    public void Icons_EveryIconHasTags()
+    {
+        for (ChoreIconEnum icon : ChoreIconEnum.values())
+            assertTrue(icon.name(), icon.GetTags().length >= 2);
+    }
+
+    @Test
+    public void IconSearch_MatchesTagPrefixesOfEveryWord()
+    {
+        assertTrue(ChoreIconEnum.LocalLaundryService.MatchesSearch("laundry"));
+        assertTrue(ChoreIconEnum.LocalLaundryService.MatchesSearch("Wash"));
+        assertTrue(ChoreIconEnum.LocalLaundryService.MatchesSearch("  wash   cloth "));
+        assertTrue(ChoreIconEnum.Pets.MatchesSearch("dog"));
+        assertTrue(ChoreIconEnum.Delete.MatchesSearch("trash"));
+        assertFalse(ChoreIconEnum.Pets.MatchesSearch("laundry"));
+        assertFalse(ChoreIconEnum.LocalLaundryService.MatchesSearch("wash dog"));
+    }
+
+    @Test
+    public void IconSearch_EmptyTextMatchesEverything()
+    {
+        for (ChoreIconEnum icon : ChoreIconEnum.values())
+        {
+            assertTrue(icon.MatchesSearch(""));
+            assertTrue(icon.MatchesSearch("   "));
+        }
+    }
+
+    @Test
     public void Description_SeparatorsAreReplaced()
     {
-        Chore chore = new Chore("Wash/dry; fold", Arrays.asList(WeekDay.Sunday), ChoreIconEnum.Sigh);
+        Chore chore = new Chore("Wash/dry; fold", Arrays.asList(WeekDay.Sunday), ChoreIconEnum.Spa);
         assertEquals("Wash-dry, fold", chore.GetDescription());
         chore.SetDescription(" a/b ");
         assertEquals("a-b", chore.GetDescription());
