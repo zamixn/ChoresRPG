@@ -6,10 +6,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.UUID;
 
 public class Chore {
-    // Unique id, generated when the chore is created. Used to find the chore in the saved list; not shown in the UI.
+    // Unique id, generated when the chore is created. Used to find the chore in the saved list and as its
+    // document id in the cloud; not shown in the UI.
     private String Id;
     public String GetId() { return Id; }
     private String Contents;
@@ -25,6 +27,16 @@ public class Chore {
     // Every time the chore was completed (chores repeat), in milliseconds since the epoch, oldest first.
     private final List<Long> CompletionHistory = new ArrayList<>();
     public List<Long> GetCompletionHistory() { return Collections.unmodifiableList(CompletionHistory); }
+    // Completions that were undone or moved. Kept so that syncing with another device doesn't bring
+    // them back (the other device may still have them).
+    private final List<Long> RemovedCompletions = new ArrayList<>();
+    public List<Long> GetRemovedCompletions() { return Collections.unmodifiableList(RemovedCompletions); }
+    // When the chore was last changed, in real milliseconds since the epoch (0 = unknown). Set by SaveData
+    // when the chore is saved; when two devices changed the same chore, the newer change wins.
+    private long UpdatedAt;
+    public long GetUpdatedAt() { return UpdatedAt; }
+    public void SetUpdatedAt(long updatedAt) { UpdatedAt = updatedAt; }
+
     // The most recent completion; null if the chore was never completed.
     public Long GetLastCompleted()
     {
@@ -33,15 +45,17 @@ public class Chore {
     // Moves the most recent completion to another time (adds one if there is none).
     public void SetLastCompleted(long lastCompleted)
     {
-        if (!CompletionHistory.isEmpty())
-            CompletionHistory.remove(CompletionHistory.size() - 1);
+        RemoveLastCompletion();
         AddCompletion(lastCompleted);
     }
     // Undoes the most recent completion; the one before it (if any) becomes the last completed.
     public void RemoveLastCompletion()
     {
-        if (!CompletionHistory.isEmpty())
-            CompletionHistory.remove(CompletionHistory.size() - 1);
+        if (CompletionHistory.isEmpty())
+            return;
+        Long removed = CompletionHistory.remove(CompletionHistory.size() - 1);
+        if (!RemovedCompletions.contains(removed))
+            RemovedCompletions.add(removed);
     }
     public void Complete() { AddCompletion(AppClock.NowMillis()); }
 
@@ -49,6 +63,7 @@ public class Chore {
     {
         CompletionHistory.add(time);
         Collections.sort(CompletionHistory);
+        RemovedCompletions.remove(Long.valueOf(time));
     }
 
     // True when the chore was completed (any time) on the same calendar day as the given date.
@@ -83,6 +98,40 @@ public class Chore {
         Icon = icon;
     }
 
+    // A chore as stored in the cloud (see cloud.ChoreSync).
+    public static Chore FromCloud(String id, String description, ChoreIconEnum icon, List<WeekDay> weekDays,
+                                  List<Long> completions, List<Long> removedCompletions, long updatedAt)
+    {
+        Chore c = new Chore(description, weekDays, icon);
+        c.Id = id;
+        c.CompletionHistory.addAll(completions);
+        Collections.sort(c.CompletionHistory);
+        c.RemovedCompletions.addAll(removedCompletions);
+        c.UpdatedAt = updatedAt;
+        return c;
+    }
+
+    // Combines two versions of the same chore (this phone's and the cloud's):
+    // - description, icon and days come from the version changed last;
+    // - completions from both are kept, except ones undone on either side.
+    public static Chore Merge(Chore a, Chore b)
+    {
+        Chore newer = a.UpdatedAt >= b.UpdatedAt ? a : b;
+        TreeSet<Long> removed = new TreeSet<>(a.RemovedCompletions);
+        removed.addAll(b.RemovedCompletions);
+        TreeSet<Long> completions = new TreeSet<>(a.CompletionHistory);
+        completions.addAll(b.CompletionHistory);
+        completions.removeAll(removed);
+        return FromCloud(newer.Id, newer.Contents, newer.Icon, newer.WeekDays,
+                new ArrayList<>(completions), new ArrayList<>(removed), Math.max(a.UpdatedAt, b.UpdatedAt));
+    }
+
+    // True when both have the same data (ignoring when they were changed).
+    public boolean HasSameContent(Chore other)
+    {
+        return ContentString().equals(other.ContentString());
+    }
+
     // '/' and ';' separate values in the save format, so they can't be stored in a description.
     public static String CleanDescription(String description)
     {
@@ -91,12 +140,16 @@ public class Chore {
         return description.replace('/', '-').replace(';', ',').trim();
     }
 
-    // Save format: Description/Icon/<7 weekdays, "null" when not scheduled>/Id/LastCompleted/History
-    // History is the completion times separated by ',' ("null" when empty). Older data stops earlier:
-    // before ids existed after the weekdays, before the history after LastCompleted.
+    // Save format: Description/Icon/<7 weekdays, "null" when not scheduled>/Id/LastCompleted/History/
+    // RemovedCompletions/UpdatedAt
+    // History and RemovedCompletions are times separated by ',' ("null" when empty). Older data stops
+    // earlier: before ids existed after the weekdays, before the history after LastCompleted, before
+    // syncing after the history.
     private static final int IdIndex = 9;
     private static final int LastCompletedIndex = 10;
     private static final int HistoryIndex = 11;
+    private static final int RemovedCompletionsIndex = 12;
+    private static final int UpdatedAtIndex = 13;
     public static Chore Parse(String s)
     {
         String[] parts = s.split("/");
@@ -115,16 +168,25 @@ public class Chore {
             c.LoadedWithoutId = true;
         if (parts.length > HistoryIndex && parts[HistoryIndex].compareTo("null") != 0)
         {
-            for (String time : parts[HistoryIndex].split(","))
-                c.CompletionHistory.add(Long.parseLong(time));
+            c.CompletionHistory.addAll(ParseTimes(parts[HistoryIndex]));
             Collections.sort(c.CompletionHistory);
         }
         // Saved before the history existed: the last completion is the only one known.
         else if (parts.length > LastCompletedIndex && parts[LastCompletedIndex].compareTo("null") != 0)
             c.CompletionHistory.add(Long.parseLong(parts[LastCompletedIndex]));
+        if (parts.length > RemovedCompletionsIndex && parts[RemovedCompletionsIndex].compareTo("null") != 0)
+            c.RemovedCompletions.addAll(ParseTimes(parts[RemovedCompletionsIndex]));
+        if (parts.length > UpdatedAtIndex)
+            c.UpdatedAt = Long.parseLong(parts[UpdatedAtIndex]);
         return c;
     }
     public String ToSaveDataString()
+    {
+        return ContentString() + "/" + UpdatedAt;
+    }
+
+    // Everything in the save format except UpdatedAt.
+    private String ContentString()
     {
         String s = Contents + "/" + Icon.toString();
         for (WeekDay w : WeekDay.values()) {
@@ -137,7 +199,16 @@ public class Chore {
         Long lastCompleted = GetLastCompleted();
         s += "/" + (lastCompleted == null ? "null" : lastCompleted.toString());
         s += "/" + (CompletionHistory.isEmpty() ? "null" : JoinTimes(CompletionHistory));
+        s += "/" + (RemovedCompletions.isEmpty() ? "null" : JoinTimes(RemovedCompletions));
         return s;
+    }
+
+    private static List<Long> ParseTimes(String joined)
+    {
+        List<Long> times = new ArrayList<>();
+        for (String time : joined.split(","))
+            times.add(Long.parseLong(time));
+        return times;
     }
 
     private static String JoinTimes(List<Long> times)
@@ -160,6 +231,8 @@ public class Chore {
                 ", WeekDays=" + WeekDays +
                 ", Icon=" + Icon +
                 ", CompletionHistory=" + CompletionHistory +
+                ", RemovedCompletions=" + RemovedCompletions +
+                ", UpdatedAt=" + UpdatedAt +
                 '}';
     }
 }

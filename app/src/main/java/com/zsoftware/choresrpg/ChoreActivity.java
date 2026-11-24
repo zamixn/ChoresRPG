@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
 import com.zsoftware.choresrpg.choreicon.ChoreIconPicker;
+import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.databinding.ActivityChoreBinding;
 import com.zsoftware.choresrpg.databinding.DialogEditDescriptionBinding;
 
@@ -71,6 +72,7 @@ public class ChoreActivity extends AppCompatActivity {
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         SaveData.Initialize(this);
+        ChoreSync.Start();
         ChoreIconDictionary.Initialize(this);
 
         binding = ActivityChoreBinding.inflate(getLayoutInflater());
@@ -102,6 +104,26 @@ public class ChoreActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        LoadChore();
+        ChoreSync.AddListener(CloudChoresChanged);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ChoreSync.RemoveListener(CloudChoresChanged);
+    }
+
+    // Chores changed on another device: show this chore's new data (or close if it was deleted).
+    private final ChoreSync.OnChoresChanged CloudChoresChanged = new ChoreSync.OnChoresChanged() {
+        @Override
+        public void ChoresChanged() {
+            LoadChore();
+        }
+    };
+
+    private void LoadChore()
+    {
         CurrentChore = SaveData.Instance().GetChore(ChoreId);
         if (CurrentChore == null)
         {

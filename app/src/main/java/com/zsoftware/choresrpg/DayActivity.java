@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.zsoftware.choresrpg.adapters.ChoreAdapter;
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
+import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.databinding.ActivityDayBinding;
 
 import java.text.SimpleDateFormat;
@@ -45,6 +46,7 @@ public class DayActivity extends AppCompatActivity {
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         SaveData.Initialize(this);
+        ChoreSync.Start();
         ChoreIconDictionary.Initialize(this);
 
         binding = ActivityDayBinding.inflate(getLayoutInflater());
@@ -78,7 +80,22 @@ public class DayActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         ShowChores();
+        ChoreSync.AddListener(CloudChoresChanged);
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ChoreSync.RemoveListener(CloudChoresChanged);
+    }
+
+    // Chores changed on another device: redraw.
+    private final ChoreSync.OnChoresChanged CloudChoresChanged = new ChoreSync.OnChoresChanged() {
+        @Override
+        public void ChoresChanged() {
+            ShowChores();
+        }
+    };
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {

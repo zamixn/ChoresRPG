@@ -18,6 +18,7 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
+import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.reminders.ChoreReminders;
 import com.zsoftware.choresrpg.settings.SettingsActivity;
 import com.zsoftware.choresrpg.databinding.ActivityMainBinding;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         SaveData.Initialize(this);
+        ChoreSync.Start();
         ChoreIconDictionary.Initialize(this);
         // Make sure the daily notification alarms are set (they are lost e.g. when the app is force-stopped).
         ChoreReminders.Schedule(this);

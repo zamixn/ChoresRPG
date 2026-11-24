@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.zsoftware.choresrpg.adapters.ChoreAdapter;
+import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.databinding.FragmentChoreListBinding;
 
 import java.text.SimpleDateFormat;
@@ -184,7 +185,23 @@ public class ChoreListFragment extends Fragment {
     public void onResume() {
         super.onResume();
         UpdateChoreListViews();
+        ChoreSync.AddListener(CloudChoresChanged);
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        ChoreSync.RemoveListener(CloudChoresChanged);
+    }
+
+    // Chores changed on another device: redraw.
+    private final ChoreSync.OnChoresChanged CloudChoresChanged = new ChoreSync.OnChoresChanged() {
+        @Override
+        public void ChoresChanged() {
+            if (binding != null)
+                UpdateChoreListViews();
+        }
+    };
 
     private static final int[] FullDayNames = {
             R.string.week_day_button_monday_full,

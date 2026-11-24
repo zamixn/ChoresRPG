@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "760464827841",
+    "project_id": "chores-5c96c",
+    "storage_bucket": "chores-5c96c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:760464827841:android:2a53f11343d49db3befb40",
+        "android_client_info": {
+          "package_name": "com.zsoftware.choresrpg"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "760464827841-rsggtnb8dmv1sfbr5iah8hd2t0nc1tuh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.zsoftware.choresrpg",
+            "certificate_hash": "1ed0cca32d99fcaa12b2304a7a304ff81f094047"
+          }
+        },
+        {
+          "client_id": "760464827841-lsioefhi4s0vqukd86idriqqcpadh23o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNbtrb-EwY2i7cykPBsc7x8LQZoNQRwdU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "760464827841-lsioefhi4s0vqukd86idriqqcpadh23o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

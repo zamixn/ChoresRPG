@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
+import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.settings.SettingsActivity;
 import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
 import com.zsoftware.choresrpg.databinding.ActivityMonthBinding;
@@ -60,6 +61,7 @@ public class MonthActivity extends AppCompatActivity {
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         SaveData.Initialize(this);
+        ChoreSync.Start();
         ChoreIconDictionary.Initialize(this);
 
         binding = ActivityMonthBinding.inflate(getLayoutInflater());
@@ -112,7 +114,22 @@ public class MonthActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         BuildCalendar();
+        ChoreSync.AddListener(CloudChoresChanged);
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ChoreSync.RemoveListener(CloudChoresChanged);
+    }
+
+    // Chores changed on another device: redraw.
+    private final ChoreSync.OnChoresChanged CloudChoresChanged = new ChoreSync.OnChoresChanged() {
+        @Override
+        public void ChoresChanged() {
+            BuildCalendar();
+        }
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

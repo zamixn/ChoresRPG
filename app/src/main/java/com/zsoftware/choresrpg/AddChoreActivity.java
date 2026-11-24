@@ -10,6 +10,7 @@ import androidx.activity.SystemBarStyle;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
+import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.databinding.ActivityAddChoreBinding;
 
 // Shows the add-chore form (AddChoreFragment) for the month and day views. The week view shows the
@@ -37,6 +38,7 @@ public class AddChoreActivity extends AppCompatActivity {
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         SaveData.Initialize(this);
+        ChoreSync.Start();
         ChoreIconDictionary.Initialize(this);
 
         binding = ActivityAddChoreBinding.inflate(getLayoutInflater());

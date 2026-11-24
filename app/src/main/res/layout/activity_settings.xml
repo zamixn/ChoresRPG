@@ -37,6 +37,37 @@
 
             <TextView
                 style="@style/SettingsSectionHeader"
+                android:text="@string/settings_account_header" />
+
+            <!-- Account: "Not signed in" + Sign in button, or "Signed in as ..." + Sign out button. -->
+            <LinearLayout
+                android:id="@+id/account_row"
+                style="@style/SettingsRow">
+
+                <LinearLayout style="@style/SettingsRowText">
+
+                    <TextView
+                        android:id="@+id/account_title"
+                        style="@style/SettingsRowTitle"
+                        tools:text="@string/settings_not_signed_in" />
+
+                    <TextView
+                        android:id="@+id/account_summary"
+                        style="@style/SettingsRowSummary"
+                        tools:text="@string/settings_sign_in_summary" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/account_button"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/settings_padding"
+                    tools:text="@string/settings_sign_in" />
+            </LinearLayout>
+
+            <TextView
+                style="@style/SettingsSectionHeader"
                 android:text="@string/settings_notifications_header" />
 
             <!-- Send notifications -->

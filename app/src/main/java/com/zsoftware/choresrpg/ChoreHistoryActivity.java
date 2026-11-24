@@ -14,6 +14,7 @@ import androidx.activity.SystemBarStyle;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
+import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.databinding.ActivityChoreHistoryBinding;
 import com.zsoftware.choresrpg.databinding.ChoreHistoryItemBinding;
 
@@ -43,6 +44,7 @@ public class ChoreHistoryActivity extends AppCompatActivity {
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         SaveData.Initialize(this);
+        ChoreSync.Start();
         ChoreIconDictionary.Initialize(this);
 
         binding = ActivityChoreHistoryBinding.inflate(getLayoutInflater());
@@ -61,6 +63,26 @@ public class ChoreHistoryActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        LoadHistory();
+        ChoreSync.AddListener(CloudChoresChanged);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        ChoreSync.RemoveListener(CloudChoresChanged);
+    }
+
+    // Chores changed on another device: show the new history.
+    private final ChoreSync.OnChoresChanged CloudChoresChanged = new ChoreSync.OnChoresChanged() {
+        @Override
+        public void ChoresChanged() {
+            LoadHistory();
+        }
+    };
+
+    private void LoadHistory()
+    {
         Chore chore = SaveData.Instance().GetChore(ChoreId);
         if (chore == null)
         {

@@ -18,13 +18,15 @@ import com.zsoftware.choresrpg.R;
 import com.zsoftware.choresrpg.SaveData;
 import com.zsoftware.choresrpg.ScreenSetup;
 import com.zsoftware.choresrpg.ShortToast;
+import com.zsoftware.choresrpg.cloud.AccountManager;
+import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.databinding.ActivitySettingsBinding;
 import com.zsoftware.choresrpg.reminders.ChoreReminders;
 
 import java.util.Calendar;
 
-// Settings: daily chore notifications on/off and the morning / evening times they are sent at.
-// Opened from the ⋮ menu of the week and month views.
+// Settings: the account (sign in with Google), daily chore notifications on/off and the morning /
+// evening times they are sent at. Opened from the ⋮ menu of the week and month views.
 public class SettingsActivity extends AppCompatActivity {
 
     private ActivitySettingsBinding binding;
@@ -47,6 +49,7 @@ public class SettingsActivity extends AppCompatActivity {
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         SaveData.Initialize(this);
+        ChoreSync.Start();
         AppSettings.Initialize(this);
         Settings = AppSettings.Instance();
 
@@ -62,6 +65,48 @@ public class SettingsActivity extends AppCompatActivity {
         binding.morningTimeRow.setOnClickListener(view -> ShowTimePicker(true));
         binding.eveningTimeRow.setOnClickListener(view -> ShowTimePicker(false));
         binding.testNotificationButton.setOnClickListener(view -> SendTestNotification());
+        binding.accountButton.setOnClickListener(view -> OnAccountButton());
+    }
+
+    // Signed out: "Not signed in" + Sign in with Google. Signed in: the account + Sign out.
+    private void ShowAccount()
+    {
+        boolean signedIn = AccountManager.IsSignedIn();
+        binding.accountTitle.setText(signedIn
+                ? getString(R.string.settings_signed_in_as, AccountManager.GetUserLabel())
+                : getString(R.string.settings_not_signed_in));
+        binding.accountSummary.setText(signedIn ? R.string.settings_signed_in_summary : R.string.settings_sign_in_summary);
+        binding.accountButton.setText(signedIn ? R.string.settings_sign_out : R.string.settings_sign_in);
+        binding.accountButton.setEnabled(true);
+    }
+
+    private void OnAccountButton()
+    {
+        // No double taps while Google's picker or Firebase is working.
+        binding.accountButton.setEnabled(false);
+        if (AccountManager.IsSignedIn())
+        {
+            // Stop syncing first; the phone keeps its chores.
+            ChoreSync.Stop();
+            AccountManager.SignOut(this, () -> {
+                ShortToast.Show(this, R.string.signed_out);
+                ShowAccount();
+            });
+            return;
+        }
+        AccountManager.SignIn(this, result -> {
+            if (result == AccountManager.SignInResult.SignedIn)
+            {
+                // Uploads this phone's chores and downloads the account's chores.
+                ChoreSync.Start();
+                ShortToast.Show(this, R.string.signed_in);
+            }
+            else if (result == AccountManager.SignInResult.NoGoogleAccount)
+                ShortToast.Show(this, R.string.sign_in_no_google_account);
+            else if (result == AccountManager.SignInResult.Failed)
+                ShortToast.Show(this, R.string.sign_in_failed);
+            ShowAccount();
+        });
     }
 
     @Override
@@ -78,6 +123,8 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void ShowSettings()
     {
+        ShowAccount();
+
         // Notifications count as on only while Android still allows them.
         boolean enabled = Settings.AreNotificationsEnabled() && ChoreReminders.CanPostNotifications(this);
         binding.notificationsSwitch.setOnCheckedChangeListener(null);
