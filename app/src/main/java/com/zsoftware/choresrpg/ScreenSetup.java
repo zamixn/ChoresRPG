@@ -2,6 +2,7 @@ package com.zsoftware.choresrpg;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.zsoftware.choresrpg.databinding.PeriodNavigatorBinding;
 import com.zsoftware.choresrpg.ftue.FtueActivity;
+import com.zsoftware.choresrpg.settings.SettingsActivity;
 import com.zsoftware.choresrpg.reminders.ChoreReminders;
 
 import java.text.DateFormat;
@@ -66,6 +68,65 @@ public class ScreenSetup {
         });
     }
 
+    // The header (toolbar) items shared by the daily, weekly and monthly views: the three view buttons,
+    // Settings, Delete All Save Data and the debug options. Returns true when the item was handled.
+    // 'redraw' runs after all chores were deleted.
+    public static boolean HandleHeaderMenuItem(Activity activity, int itemId, Runnable redraw)
+    {
+        if (HandleDebugNotificationItem(activity, itemId) || HandleDebugFtueItem(activity, itemId))
+            return true;
+        // Debug: "today" moved; rebuild the screen so every date shown follows it.
+        if (HandleDebugMenuItem(activity, itemId))
+        {
+            activity.recreate();
+            return true;
+        }
+        if (itemId == R.id.action_daily_view)
+            OpenDailyView(activity);
+        else if (itemId == R.id.action_weekly_view)
+            OpenWeeklyView(activity);
+        else if (itemId == R.id.action_monthly_view)
+            OpenMonthlyView(activity);
+        else if (itemId == R.id.action_settings)
+            activity.startActivity(new Intent(activity, SettingsActivity.class));
+        else if (itemId == R.id.action_delete_all_save_data)
+        {
+            SaveData.Instance().DeleteAll();
+            ShortToast.Show(activity, R.string.all_data_deleted);
+            redraw.run();
+        }
+        else
+            return false;
+        return true;
+    }
+
+    // Switching between the daily, weekly and monthly views: the weekly view (MainActivity) always stays
+    // at the bottom; the daily or monthly view opens on top of it, replacing the view that was open.
+    public static void OpenDailyView(Activity from)
+    {
+        from.startActivity(DayActivity.CreateDailyViewIntent(from));
+        if (!(from instanceof MainActivity))
+            from.finish();
+    }
+
+    public static void OpenWeeklyView(Activity from)
+    {
+        if (from instanceof MainActivity)
+            return;
+        // Brings the existing weekly view back instead of starting a new one, closing what's above it.
+        Intent weekly = new Intent(from, MainActivity.class);
+        weekly.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        from.startActivity(weekly);
+        from.finish();
+    }
+
+    public static void OpenMonthlyView(Activity from)
+    {
+        from.startActivity(new Intent(from, MonthActivity.class));
+        if (!(from instanceof MainActivity))
+            from.finish();
+    }
+
     // Debug option "show first-time setup": opens the FTUE again. Returns true when the item was this one.
     public static boolean HandleDebugFtueItem(Activity activity, int itemId)
     {
@@ -106,7 +167,7 @@ public class ScreenSetup {
         navigator.nextButton.setContentDescription(context.getString(nextDescription));
         navigator.previousButton.setOnClickListener(view -> onPrevious.run());
         navigator.nextButton.setOnClickListener(view -> onNext.run());
-        navigator.periodLabel.setOnClickListener(view -> onCurrent.run());
+        navigator.periodLabelArea.setOnClickListener(view -> onCurrent.run());
     }
 
     // Debug builds: shows the "simulate next / previous day" options in the ⋮ menu ("back to the real

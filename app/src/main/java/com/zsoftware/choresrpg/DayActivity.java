@@ -4,8 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.activity.SystemBarStyle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,24 +24,36 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-// Lists all chores of one day. Opened from the week or month view; the arrows move to the previous
-// or next day.
+// Lists all chores of one day; the arrows move to the previous or next day. Two ways in:
+// - as the daily view (the app's start screen, and the header's daily button): today, no back arrow;
+// - from a day in the week or month view: that date, with a back arrow to return there.
 public class DayActivity extends AppCompatActivity {
 
     private static final String ExtraWeekDay = "WeekDay";
     private static final String ExtraDateMillis = "DateMillis";
+    private static final String ExtraDailyView = "DailyView";
     private static final String StateDateMillis = "DateMillis";
 
     private ActivityDayBinding binding;
     // The day that is shown and its weekday (which chores are listed).
     private Calendar CurrentDate;
     private WeekDay Day;
+    private boolean IsDailyView;
 
     public static Intent CreateIntent(Context context, WeekDay weekDay, Calendar date)
     {
         Intent intent = new Intent(context, DayActivity.class);
         intent.putExtra(ExtraWeekDay, weekDay.name());
         intent.putExtra(ExtraDateMillis, date.getTimeInMillis());
+        return intent;
+    }
+
+    // The daily view: today, as one of the app's main views (daily / weekly / monthly).
+    public static Intent CreateDailyViewIntent(Context context)
+    {
+        Calendar today = AppClock.Now();
+        Intent intent = CreateIntent(context, WeekDay.FromCalendar(today), today);
+        intent.putExtra(ExtraDailyView, true);
         return intent;
     }
 
@@ -53,9 +69,20 @@ public class DayActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         ScreenSetup.ApplySafeAreaInsets(binding.appBar, binding.contentDay);
 
+        IsDailyView = getIntent().getBooleanExtra(ExtraDailyView, false);
         setSupportActionBar(binding.toolbar);
         if (getSupportActionBar() != null)
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(!IsDailyView);
+        // As the start screen, back leaves the app (like on the week view) instead of opening the week view.
+        if (IsDailyView)
+        {
+            getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+                @Override
+                public void handleOnBackPressed() {
+                    finishAffinity();
+                }
+            });
+        }
 
         CurrentDate = AppClock.Now();
         if (savedInstanceState != null && savedInstanceState.containsKey(StateDateMillis))
@@ -103,6 +130,29 @@ public class DayActivity extends AppCompatActivity {
         outState.putLong(StateDateMillis, CurrentDate.getTimeInMillis());
     }
 
+    // Header: daily / weekly / monthly buttons and the ⋮ menu, like the other views. The daily button is
+    // greyed out while today is shown (however this view was opened); on another day it jumps back to today.
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        if (DaysFromToday(CurrentDate) == 0)
+            ScreenSetup.MarkCurrentView(menu, R.id.action_daily_view);
+        ScreenSetup.SetupDebugMenu(menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.action_daily_view)
+        {
+            ShowToday();
+            return true;
+        }
+        if (ScreenSetup.HandleHeaderMenuItem(this, item.getItemId(), this::ShowChores))
+            return true;
+        return super.onOptionsItemSelected(item);
+    }
+
     private void ShowDay(int daysToMove)
     {
         CurrentDate.add(Calendar.DAY_OF_MONTH, daysToMove);
@@ -117,11 +167,16 @@ public class DayActivity extends AppCompatActivity {
         ShowChores();
     }
 
-    // Title, relative label and the list of the shown day. Chores completed on it get a green checkmark.
+    // Title (weekday), date + relative label in the bar below, and the list of the shown day.
+    // Chores completed on it get a green checkmark.
     private void ShowChores()
     {
-        setTitle(GetDayTitle());
+        setTitle(GetFullDayName(Day));
+        binding.periodNavigator.periodDate.setVisibility(View.VISIBLE);
+        binding.periodNavigator.periodDate.setText(GetDateLabel());
         binding.periodNavigator.periodLabel.setText(GetRelativeDayLabel());
+        // The daily button's greyed-out state depends on whether today is shown.
+        invalidateOptionsMenu();
 
         List<Chore> chores = SaveData.Instance().GetChoreList();
         ChoreAdapter adapter = new ChoreAdapter(this, chores, Day, CurrentDate);
@@ -136,13 +191,12 @@ public class DayActivity extends AppCompatActivity {
         return true;
     }
 
-    // e.g. "Monday, 23 November" (with the year when it isn't this year).
-    private String GetDayTitle()
+    // e.g. "24 November" (with the year when it isn't this year).
+    private String GetDateLabel()
     {
         boolean isThisYear = CurrentDate.get(Calendar.YEAR) == AppClock.Now().get(Calendar.YEAR);
         String pattern = isThisYear ? "d MMMM" : "d MMMM yyyy";
-        String dayAndMonth = new SimpleDateFormat(pattern, Locale.getDefault()).format(CurrentDate.getTime());
-        return getString(GetFullDayName(Day)) + ", " + dayAndMonth;
+        return new SimpleDateFormat(pattern, Locale.getDefault()).format(CurrentDate.getTime());
     }
 
     // "Today", "Tomorrow", "Yesterday", "In 3 days" or "3 days ago".

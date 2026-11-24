@@ -142,46 +142,10 @@ public class MonthActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (ScreenSetup.HandleDebugNotificationItem(this, id) || ScreenSetup.HandleDebugFtueItem(this, id))
+        // View buttons, Settings, Delete All Save Data and debug options (shared with the other views).
+        if (ScreenSetup.HandleHeaderMenuItem(this, item.getItemId(), this::BuildCalendar))
             return true;
-
-        // Debug: "today" moved; rebuild the screen so every date shown follows it.
-        if (ScreenSetup.HandleDebugMenuItem(this, id))
-        {
-            recreate();
-            return true;
-        }
-
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
-        }
-
-        if(id == R.id.action_weekly_view)
-        {
-            OpenWeeklyView();
-            return true;
-        }
-
-        if(id == R.id.action_delete_all_save_data)
-        {
-            SaveData.Instance().DeleteAll();
-            ShortToast.Show(this, R.string.all_data_deleted);
-            BuildCalendar();
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
-    }
-
-    // The weekly view (MainActivity) normally sits below this activity, so closing this one returns to it.
-    private void OpenWeeklyView()
-    {
-        if (isTaskRoot())
-            startActivity(new Intent(this, MainActivity.class));
-        finish();
     }
 
     private void BuildCalendar()

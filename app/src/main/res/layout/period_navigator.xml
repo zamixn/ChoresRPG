@@ -18,18 +18,41 @@
         android:src="@drawable/ic_previous"
         android:contentDescription="@string/previous" />
 
-    <TextView
-        android:id="@+id/period_label"
+    <!-- Tappable: an optional date line (day view) above the period label. -->
+    <LinearLayout
+        android:id="@+id/period_label_area"
         android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
         android:background="?attr/selectableItemBackground"
         android:gravity="center"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:textSize="@dimen/period_navigator_text_size"
-        android:textStyle="bold"
-        tools:text="November 2026" />
+        android:minHeight="@dimen/period_navigator_button_size"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/period_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textSize="@dimen/period_navigator_text_size"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="24 November"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/period_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:gravity="center"
+            android:maxLines="1"
+            android:textSize="@dimen/period_navigator_text_size"
+            android:textStyle="bold"
+            tools:text="November 2026" />
+    </LinearLayout>
 
     <ImageButton
         android:id="@+id/next_button"

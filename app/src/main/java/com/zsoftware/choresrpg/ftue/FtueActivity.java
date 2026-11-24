@@ -10,6 +10,7 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.zsoftware.choresrpg.DayActivity;
 import com.zsoftware.choresrpg.R;
 import com.zsoftware.choresrpg.SaveData;
 import com.zsoftware.choresrpg.ScreenSetup;
@@ -95,6 +96,8 @@ public class FtueActivity extends AppCompatActivity {
         if (Step == StepDone)
         {
             AppSettings.Instance().SetFtueCompleted(true);
+            // Done: continue in the daily view (the app's default view), on top of the week view.
+            startActivity(DayActivity.CreateDailyViewIntent(this));
             finish();
             return;
         }

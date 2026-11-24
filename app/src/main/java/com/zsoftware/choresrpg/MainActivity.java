@@ -55,10 +55,18 @@ public class MainActivity extends AppCompatActivity {
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
 
-        // First start: show the first-time setup on top of the week view. (Not again after a rotation.)
+        // App start: the daily view opens on top of this week view (it's the default view); on the very first
+        // start the first-time setup comes first and opens the daily view when finished. Only when opened
+        // from the launcher: not after a rotation, and not when coming back from a notification's day view.
         AppSettings.Initialize(this);
-        if (savedInstanceState == null && !AppSettings.Instance().IsFtueCompleted())
-            startActivity(FtueActivity.CreateIntent(this));
+        boolean openedFromLauncher = Intent.ACTION_MAIN.equals(getIntent().getAction());
+        if (savedInstanceState == null && openedFromLauncher)
+        {
+            if (!AppSettings.Instance().IsFtueCompleted())
+                startActivity(FtueActivity.CreateIntent(this));
+            else
+                startActivity(DayActivity.CreateDailyViewIntent(this));
+        }
     }
 
     @Override
@@ -72,40 +80,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        if (ScreenSetup.HandleDebugNotificationItem(this, id) || ScreenSetup.HandleDebugFtueItem(this, id))
+        // View buttons, Settings, Delete All Save Data and debug options (shared with the other views).
+        if (ScreenSetup.HandleHeaderMenuItem(this, item.getItemId(), this::recreate))
             return true;
-
-        // Debug: "today" moved; rebuild the screen so every date shown follows it.
-        if (ScreenSetup.HandleDebugMenuItem(this, id))
-        {
-            recreate();
-            return true;
-        }
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
-        }
-
-        if(id == R.id.action_monthly_view)
-        {
-            startActivity(new Intent(this, MonthActivity.class));
-            return true;
-        }
-
-        if(id == R.id.action_delete_all_save_data)
-        {
-            SaveData.Instance().DeleteAll();
-            ShortToast.Show(this, R.string.all_data_deleted);
-            return true;
-        }
-
         return super.onOptionsItemSelected(item);
     }
 

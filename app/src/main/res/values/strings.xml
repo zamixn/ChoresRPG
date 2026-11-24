@@ -34,6 +34,7 @@
     <string name="all_data_deleted">All data deleted</string>
     <string name="monthly_view">Monthly view</string>
     <string name="weekly_view">Weekly view</string>
+    <string name="daily_view">Daily view</string>
     <string name="no_chores_on_day">No chores on this day</string>
     <string name="chore_days_label">Days</string>
     <string name="chore_every_day">Every day</string>
