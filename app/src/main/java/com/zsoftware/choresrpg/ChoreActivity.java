@@ -72,7 +72,7 @@ public class ChoreActivity extends AppCompatActivity {
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         SaveData.Initialize(this);
-        ChoreSync.Start();
+        ChoreSync.Start(this);
         ChoreIconDictionary.Initialize(this);
 
         binding = ActivityChoreBinding.inflate(getLayoutInflater());

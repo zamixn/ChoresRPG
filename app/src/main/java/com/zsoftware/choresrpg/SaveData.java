@@ -257,4 +257,12 @@ public class SaveData {
     {
         SaveChoreList(new ArrayList<>());
     }
+
+    // Removes every chore from this phone only (when signing out or deleting the account without keeping
+    // them): nothing is sent to the cloud and no deletions are remembered for later. Stop syncing first.
+    public void ClearLocalChores()
+    {
+        WriteChoreList(new ArrayList<>());
+        WritePendingDeletes(new HashMap<>());
+    }
 }

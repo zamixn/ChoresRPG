@@ -66,6 +66,22 @@
                     tools:text="@string/settings_sign_in" />
             </LinearLayout>
 
+            <!-- Only while signed in. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/delete_account_button"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/chore_view_padding"
+                android:layout_marginEnd="@dimen/chore_view_padding"
+                android:text="@string/delete_account"
+                android:textColor="@color/delete_red"
+                android:visibility="gone"
+                app:icon="@drawable/ic_delete"
+                app:iconTint="@color/delete_red"
+                app:strokeColor="@color/delete_red"
+                tools:visibility="visible" />
+
             <TextView
                 style="@style/SettingsSectionHeader"
                 android:text="@string/settings_notifications_header" />

@@ -2,18 +2,24 @@ package com.zsoftware.choresrpg.settings;
 
 import android.Manifest;
 import android.app.TimePickerDialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.format.DateFormat;
+import android.view.View;
 import android.widget.CompoundButton;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.zsoftware.choresrpg.R;
 import com.zsoftware.choresrpg.SaveData;
 import com.zsoftware.choresrpg.ScreenSetup;
@@ -49,7 +55,7 @@ public class SettingsActivity extends AppCompatActivity {
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         SaveData.Initialize(this);
-        ChoreSync.Start();
+        ChoreSync.Start(this);
         AppSettings.Initialize(this);
         Settings = AppSettings.Instance();
 
@@ -66,9 +72,10 @@ public class SettingsActivity extends AppCompatActivity {
         binding.eveningTimeRow.setOnClickListener(view -> ShowTimePicker(false));
         binding.testNotificationButton.setOnClickListener(view -> SendTestNotification());
         binding.accountButton.setOnClickListener(view -> OnAccountButton());
+        binding.deleteAccountButton.setOnClickListener(view -> OnDeleteAccountButton());
     }
 
-    // Signed out: "Not signed in" + Sign in with Google. Signed in: the account + Sign out.
+    // Signed out: "Not signed in" + Sign in with Google. Signed in: the account + Sign out, and Delete account.
     private void ShowAccount()
     {
         boolean signedIn = AccountManager.IsSignedIn();
@@ -77,34 +84,107 @@ public class SettingsActivity extends AppCompatActivity {
                 : getString(R.string.settings_not_signed_in));
         binding.accountSummary.setText(signedIn ? R.string.settings_signed_in_summary : R.string.settings_sign_in_summary);
         binding.accountButton.setText(signedIn ? R.string.settings_sign_out : R.string.settings_sign_in);
-        binding.accountButton.setEnabled(true);
+        binding.deleteAccountButton.setVisibility(signedIn ? View.VISIBLE : View.GONE);
+        SetAccountButtonsEnabled(true);
+    }
+
+    // Off while Google's picker or Firebase is working, so nothing is started twice.
+    private void SetAccountButtonsEnabled(boolean enabled)
+    {
+        binding.accountButton.setEnabled(enabled);
+        binding.deleteAccountButton.setEnabled(enabled);
     }
 
     private void OnAccountButton()
     {
-        // No double taps while Google's picker or Firebase is working.
-        binding.accountButton.setEnabled(false);
         if (AccountManager.IsSignedIn())
         {
-            // Stop syncing first; the phone keeps its chores.
-            ChoreSync.Stop();
-            AccountManager.SignOut(this, () -> {
-                ShortToast.Show(this, R.string.signed_out);
-                ShowAccount();
-            });
+            AskKeepLocalChores(R.string.sign_out_title, R.string.sign_out_keep_message, this::SignOut);
             return;
         }
+        SetAccountButtonsEnabled(false);
         AccountManager.SignIn(this, result -> {
             if (result == AccountManager.SignInResult.SignedIn)
             {
                 // Uploads this phone's chores and downloads the account's chores.
-                ChoreSync.Start();
+                ChoreSync.Start(this);
                 ShortToast.Show(this, R.string.signed_in);
             }
             else if (result == AccountManager.SignInResult.NoGoogleAccount)
                 ShortToast.Show(this, R.string.sign_in_no_google_account);
             else if (result == AccountManager.SignInResult.Failed)
                 ShortToast.Show(this, R.string.sign_in_failed);
+            ShowAccount();
+        });
+    }
+
+    public interface OnKeepLocalChoresAnswered
+    {
+        void Answered(boolean keepLocalChores);
+    }
+
+    // Popup: keep a copy of the chores on this phone, or remove them from it? Cancel does nothing.
+    private void AskKeepLocalChores(int titleId, int messageId, OnKeepLocalChoresAnswered onAnswered)
+    {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(titleId)
+                .setMessage(messageId)
+                .setPositiveButton(R.string.keep_on_phone, (dialog, which) -> onAnswered.Answered(true))
+                .setNegativeButton(R.string.remove_from_phone, (dialog, which) -> onAnswered.Answered(false))
+                .setNeutralButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void SignOut(boolean keepLocalChores)
+    {
+        SetAccountButtonsEnabled(false);
+        // Stop syncing first, so removing the phone's chores isn't sent to the cloud as deletions.
+        ChoreSync.Stop();
+        if (!keepLocalChores)
+            SaveData.Instance().ClearLocalChores();
+        AccountManager.SignOut(this, () -> {
+            ShortToast.Show(this, R.string.signed_out);
+            ShowAccount();
+        });
+    }
+
+    // Popup 1: confirm deleting the account (red Delete button). Popup 2: keep the chores on this phone?
+    private void OnDeleteAccountButton()
+    {
+        // The bin icon is drawn white; tint it red to match the Delete button.
+        Drawable binIcon = ContextCompat.getDrawable(this, R.drawable.ic_delete).mutate();
+        binIcon.setTint(ContextCompat.getColor(this, R.color.delete_red));
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setIcon(binIcon)
+                .setTitle(R.string.delete_account_title)
+                .setMessage(getString(R.string.delete_account_message, AccountManager.GetUserLabel()))
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.delete, (d, which) ->
+                        AskKeepLocalChores(R.string.delete_account_keep_title, R.string.delete_account_keep_message, this::DeleteAccount))
+                .show();
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(this, R.color.delete_red));
+    }
+
+    private void DeleteAccount(boolean keepLocalChores)
+    {
+        SetAccountButtonsEnabled(false);
+        // Stop syncing first: the cloud chores are about to be deleted and must not come back from (or be
+        // re-uploaded by) this phone.
+        ChoreSync.Stop();
+        AccountManager.DeleteAccount(this, result -> {
+            if (result == AccountManager.DeleteResult.Deleted)
+            {
+                if (!keepLocalChores)
+                    SaveData.Instance().ClearLocalChores();
+                ShortToast.Show(this, R.string.account_deleted);
+            }
+            else
+            {
+                // Still signed in: carry on syncing.
+                ChoreSync.Start(this);
+                if (result == AccountManager.DeleteResult.Failed)
+                    ShortToast.Show(this, R.string.delete_account_failed);
+            }
             ShowAccount();
         });
     }

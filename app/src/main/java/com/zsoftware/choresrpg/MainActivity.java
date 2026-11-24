@@ -38,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this, SystemBarStyle.dark(Color.TRANSPARENT));
         super.onCreate(savedInstanceState);
         SaveData.Initialize(this);
-        ChoreSync.Start();
+        ChoreSync.Start(this);
         ChoreIconDictionary.Initialize(this);
         // Make sure the daily notification alarms are set (they are lost e.g. when the app is force-stopped).
         ChoreReminders.Schedule(this);

@@ -1,15 +1,21 @@
 package com.zsoftware.choresrpg.cloud;
 
+import android.content.Context;
 import android.util.Log;
 
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.zsoftware.choresrpg.Chore;
+import com.zsoftware.choresrpg.R;
 import com.zsoftware.choresrpg.SaveData;
+import com.zsoftware.choresrpg.ShortToast;
 import com.zsoftware.choresrpg.WeekDay;
 import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
 
@@ -40,11 +46,14 @@ public class ChoreSync {
 
     private static ListenerRegistration Registration;
     private static String ListeningUserId;
+    // For the "couldn't sync" toast.
+    private static Context AppContext;
 
     // Starts syncing for the signed-in user (stops when signed out). Safe to call from every screen;
     // SaveData must be initialized first.
-    public static void Start()
+    public static void Start(Context context)
     {
+        AppContext = context.getApplicationContext();
         SaveData.SetSyncHandler(new SaveData.SyncHandler() {
             @Override
             public void ChoresSaved(List<Chore> changedChores, List<String> deletedChoreIds) {
@@ -70,7 +79,7 @@ public class ChoreSync {
             {
                 // Firestore stops the listener after an error (e.g. PERMISSION_DENIED before the security
                 // rules are published). Forget it, so the next screen that opens starts listening again.
-                Log.e(LOGTAG, "Start: listening for cloud changes failed", error);
+                ReportFailure("Start: listening for cloud changes failed", error);
                 Stop();
                 return;
             }
@@ -93,6 +102,30 @@ public class ChoreSync {
         return FirebaseFirestore.getInstance().collection("users").document(userId).collection("chores");
     }
 
+    // Writes a chore document. Offline, Firestore queues it (that's not a failure); the toast is only
+    // for writes the cloud refuses (e.g. security rules).
+    private static void Write(DocumentReference document, Map<String, Object> data, boolean merge)
+    {
+        Task<Void> write = merge ? document.set(data, SetOptions.merge()) : document.set(data);
+        write.addOnFailureListener(error -> ReportFailure("Write: couldn't save chore " + document.getId(), error));
+    }
+
+    // Logs a sync failure and shows a short "couldn't sync" toast; at most one toast every few seconds,
+    // since one failure often hits many chores at once.
+    private static final long FailureToastIntervalMillis = 10000;
+    private static long LastFailureToastMillis = 0;
+    private static void ReportFailure(String message, Exception error)
+    {
+        Log.e(LOGTAG, message, error);
+        long now = System.currentTimeMillis();
+        if (AppContext == null || now - LastFailureToastMillis < FailureToastIntervalMillis)
+            return;
+        LastFailureToastMillis = now;
+        boolean refused = error instanceof FirebaseFirestoreException
+                && ((FirebaseFirestoreException) error).getCode() == FirebaseFirestoreException.Code.PERMISSION_DENIED;
+        ShortToast.Show(AppContext, refused ? R.string.sync_refused : R.string.sync_failed);
+    }
+
     // Sends chores changed or deleted on this phone. Signed out, deletions wait in SaveData's pending list.
     private static void Upload(List<Chore> changedChores, List<String> deletedChoreIds)
     {
@@ -102,7 +135,7 @@ public class ChoreSync {
             return;
         CollectionReference chores = GetChores(userId);
         for (Chore chore : changedChores)
-            chores.document(chore.GetId()).set(ToDocument(chore));
+            Write(chores.document(chore.GetId()), ToDocument(chore), false);
 
         Map<String, Long> pendingDeletes = saveData.GetPendingDeletes();
         for (String id : deletedChoreIds)
@@ -119,7 +152,7 @@ public class ChoreSync {
         Map<String, Object> deleted = new HashMap<>();
         deleted.put("deleted", true);
         deleted.put("updatedAt", deletedAt);
-        chores.document(id).set(deleted, SetOptions.merge());
+        Write(chores.document(id), deleted, true);
         SaveData.Instance().ClearPendingDelete(id);
     }
 
@@ -150,7 +183,7 @@ public class ChoreSync {
 
         CollectionReference chores = GetChores(userId);
         for (Chore chore : result.ToUpload)
-            chores.document(chore.GetId()).set(ToDocument(chore));
+            Write(chores.document(chore.GetId()), ToDocument(chore), false);
         for (Map.Entry<String, Long> delete : result.DeletesToUpload.entrySet())
             UploadDelete(chores, delete.getKey(), delete.getValue());
     }
