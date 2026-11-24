@@ -102,8 +102,8 @@ public class ChoreReminders {
     }
 
     // Shows the notification for today's chores (the simulated day in debug builds). Does nothing when
-    // there are no chores today or notifications aren't allowed.
-    public static void ShowTodayNotification(Context context, int kind)
+    // there are no chores today or notifications aren't allowed; returns whether it was shown.
+    public static boolean ShowTodayNotification(Context context, int kind)
     {
         SaveData.Initialize(context);
         Calendar today = AppClock.Now();
@@ -111,7 +111,7 @@ public class ChoreReminders {
         List<String> lines = BuildChoreLines(chores, today,
                 context.getString(R.string.reminder_line_todo), context.getString(R.string.reminder_line_done));
         if (lines.isEmpty())
-            return;
+            return false;
 
         int doneCount = 0;
         for (Chore chore : chores)
@@ -136,15 +136,17 @@ public class ChoreReminders {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED)
-            return;
+            return false;
         try
         {
             NotificationManagerCompat.from(context).notify(NotificationId, notification.build());
+            return true;
         }
         catch (SecurityException e)
         {
             // Permission taken away between the check and the call.
             Log.e(LOGTAG, "ShowTodayNotification: not allowed to post", e);
+            return false;
         }
     }
 

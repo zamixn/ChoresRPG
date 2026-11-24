@@ -14,6 +14,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.zsoftware.choresrpg.databinding.PeriodNavigatorBinding;
+import com.zsoftware.choresrpg.reminders.ChoreReminders;
 
 import java.text.DateFormat;
 
@@ -90,6 +91,19 @@ public class ScreenSetup {
         MenuItem realDay = menu.findItem(R.id.action_simulate_real_day);
         if (realDay != null)
             realDay.setVisible(BuildConfig.DEBUG && AppClock.GetDayOffset() != 0);
+    }
+
+    // Debug option "send chore reminder notification": shows today's chore notification right away
+    // (whether or not notifications are turned on in the settings). Returns true when the item was this one.
+    public static boolean HandleDebugNotificationItem(Activity activity, int itemId)
+    {
+        if (itemId != R.id.action_send_reminder_notification)
+            return false;
+        if (!ChoreReminders.CanPostNotifications(activity))
+            ShortToast.Show(activity, R.string.notifications_blocked);
+        else if (!ChoreReminders.ShowTodayNotification(activity, ChoreReminders.Morning))
+            ShortToast.Show(activity, R.string.reminder_no_chores_today);
+        return true;
     }
 
     // Handles the debug day options: moves the app's "today" (AppClock) and shows the new date.

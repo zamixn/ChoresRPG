@@ -44,5 +44,10 @@
             android:orderInCategory="202"
             android:title="@string/simulate_real_day"
             app:showAsAction="never" />
+        <item
+            android:id="@+id/action_send_reminder_notification"
+            android:orderInCategory="203"
+            android:title="@string/send_reminder_notification"
+            app:showAsAction="never" />
     </group>
 </menu>

@@ -147,7 +147,8 @@ public class SettingsActivity extends AppCompatActivity {
                 ShortToast.Show(this, R.string.notifications_blocked);
             return;
         }
-        ChoreReminders.ShowTodayNotification(this, ChoreReminders.Morning);
+        if (!ChoreReminders.ShowTodayNotification(this, ChoreReminders.Morning))
+            ShortToast.Show(this, R.string.reminder_no_chores_today);
     }
 
     // e.g. "10:00" or "10:00 AM", following the phone's 24-hour setting.

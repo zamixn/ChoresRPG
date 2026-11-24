@@ -68,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
+        if (ScreenSetup.HandleDebugNotificationItem(this, id))
+            return true;
+
         // Debug: "today" moved; rebuild the screen so every date shown follows it.
         if (ScreenSetup.HandleDebugMenuItem(this, id))
         {

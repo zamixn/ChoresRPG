@@ -95,6 +95,8 @@
     <string name="simulate_previous_day">Debug: simulate previous day</string>
     <string name="simulate_real_day">Debug: back to the real day</string>
     <string name="simulated_day">Today is now %1$s</string>
+    <string name="send_reminder_notification">Debug: send chore reminder notification</string>
+    <string name="reminder_no_chores_today">No chores today, so no notification</string>
     <string name="tomorrow">Tomorrow</string>
     <string name="yesterday">Yesterday</string>
     <plurals name="days_from_now">

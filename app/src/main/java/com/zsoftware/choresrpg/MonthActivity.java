@@ -126,6 +126,9 @@ public class MonthActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
+        if (ScreenSetup.HandleDebugNotificationItem(this, id))
+            return true;
+
         // Debug: "today" moved; rebuild the screen so every date shown follows it.
         if (ScreenSetup.HandleDebugMenuItem(this, id))
         {
