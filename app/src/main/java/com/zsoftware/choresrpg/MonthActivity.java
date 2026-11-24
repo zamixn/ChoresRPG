@@ -26,6 +26,7 @@ import com.zsoftware.choresrpg.settings.SettingsActivity;
 import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
 import com.zsoftware.choresrpg.databinding.ActivityMonthBinding;
 import com.zsoftware.choresrpg.databinding.CalendarDayCellBinding;
+import com.zsoftware.choresrpg.databinding.CalendarDayChoreBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -284,38 +285,28 @@ public class MonthActivity extends AppCompatActivity {
         {
             if (!chore.IsOnDay(weekDay))
                 continue;
-            TextView choreView = (TextView) inflater.inflate(R.layout.calendar_day_chore, cell.dayChores, false);
-            choreView.setText(chore.GetDescription());
-            SetChoreIcons(choreView, chore.GetIcon(), chore.IsCompletedOn(date));
-            cell.dayChores.addView(choreView);
+            cell.dayChores.addView(CreateChoreRow(inflater, cell.dayChores, chore, chore.IsCompletedOn(date)));
         }
         return cell.getRoot();
     }
 
-    // The chore's icon before its name, and a green checkmark after it when it was completed that day
-    // (same as the week and day views).
-    private void SetChoreIcons(TextView choreView, ChoreIconEnum iconType, boolean isCompleted)
+    // The chore's icon and name, plus a green checkmark (and green name) when it was completed that day,
+    // like the week and day views.
+    private View CreateChoreRow(LayoutInflater inflater, ViewGroup parent, Chore chore, boolean isCompleted)
     {
-        int size = getResources().getDimensionPixelSize(R.dimen.calendar_chore_icon_size);
+        CalendarDayChoreBinding row = CalendarDayChoreBinding.inflate(inflater, parent, false);
+        row.choreName.setText(chore.GetDescription());
 
-        Drawable copy = null;
-        Drawable icon = iconType == null ? null : ChoreIconDictionary.Instance().GetIcon(iconType);
+        Drawable icon = chore.GetIcon() == null ? null : ChoreIconDictionary.Instance().GetIcon(chore.GetIcon());
+        // Each cell needs its own copy: the dictionary's drawables are shared between views.
         if (icon != null && icon.getConstantState() != null)
-        {
-            // Each cell needs its own copy: the dictionary's drawables are shared and get resized here.
-            copy = icon.getConstantState().newDrawable(getResources()).mutate();
-            copy.setBounds(0, 0, size, size);
-        }
+            icon = icon.getConstantState().newDrawable(getResources()).mutate();
+        row.choreIcon.setImageDrawable(icon);
 
-        Drawable check = null;
+        row.completedCheck.setVisibility(isCompleted ? View.VISIBLE : View.GONE);
         if (isCompleted)
-        {
-            check = ContextCompat.getDrawable(this, R.drawable.ic_complete).mutate();
-            check.setTint(ContextCompat.getColor(this, R.color.completed_green));
-            check.setBounds(0, 0, size, size);
-        }
-
-        choreView.setCompoundDrawablesRelative(copy, null, check, null);
+            row.choreName.setTextColor(ContextCompat.getColor(this, R.color.completed_green));
+        return row.getRoot();
     }
 
     private LinearLayout NewWeekRow()

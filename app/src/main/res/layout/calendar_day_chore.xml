@@ -1,12 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- One chore in a month view day cell: icon, name, and a green checkmark when completed that day. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/calendar_chore_margin_top"
-    android:drawablePadding="@dimen/calendar_chore_icon_padding"
-    android:ellipsize="end"
     android:gravity="center_vertical"
-    android:maxLines="2"
-    android:textSize="@dimen/calendar_chore_text_size"
-    tools:text="Mop the floor" />
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/chore_icon"
+        android:layout_width="@dimen/calendar_chore_icon_size"
+        android:layout_height="@dimen/calendar_chore_icon_size"
+        android:layout_marginEnd="@dimen/calendar_chore_icon_padding"
+        android:importantForAccessibility="no"
+        tools:src="@drawable/chore_icon_cleaning_services" />
+
+    <TextView
+        android:id="@+id/chore_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textSize="@dimen/calendar_chore_text_size"
+        tools:text="Mop the floor" />
+
+    <ImageView
+        android:id="@+id/completed_check"
+        android:layout_width="@dimen/calendar_chore_check_size"
+        android:layout_height="@dimen/calendar_chore_check_size"
+        android:layout_marginStart="@dimen/calendar_chore_icon_padding"
+        android:contentDescription="@string/chore_completed_check"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_complete"
+        app:tint="@color/completed_green"
+        tools:visibility="visible" />
+</LinearLayout>

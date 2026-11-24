@@ -2,6 +2,7 @@ package com.zsoftware.choresrpg.adapters;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.core.content.ContextCompat;
 
 import com.zsoftware.choresrpg.Chore;
 import com.zsoftware.choresrpg.R;
@@ -47,21 +50,30 @@ public class ChoreAdapter extends BaseAdapter {
 
         if (convertView == null) {
             gridView = inflater.inflate(R.layout.choreitem, parent, false);
+            // Remember the normal text color, to put it back when a recycled row shows an unfinished chore.
+            TextView newText = (TextView)gridView.findViewById(R.id.descriptionTextView);
+            gridView.setTag(newText.getTextColors());
         } else {
             gridView = (View) convertView;
         }
 
         // Fill the row every time: a recycled row (convertView) still shows the chore it was made for.
         Chore chore = Chores.get(position);
+        boolean isCompleted = chore.IsCompletedOn(Date);
 
         ImageView imageView = (ImageView)gridView.findViewById(R.id.iconImage);
         imageView.setImageDrawable(ChoreIconDictionary.Instance().GetIcon(chore.GetIcon()));
 
+        // Completed on this list's date: green name and a green checkmark (like the month view).
         TextView textView = (TextView)gridView.findViewById(R.id.descriptionTextView);
         textView.setText(chore.GetDescription());
+        if (isCompleted)
+            textView.setTextColor(ContextCompat.getColor(context, R.color.completed_green));
+        else
+            textView.setTextColor((ColorStateList) gridView.getTag());
 
         ImageView completedView = (ImageView)gridView.findViewById(R.id.completedImage);
-        completedView.setVisibility(chore.IsCompletedOn(Date) ? View.VISIBLE : View.GONE);
+        completedView.setVisibility(isCompleted ? View.VISIBLE : View.GONE);
 
         return gridView;
     }

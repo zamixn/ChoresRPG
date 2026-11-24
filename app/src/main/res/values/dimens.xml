@@ -46,6 +46,7 @@
     <dimen name="calendar_day_number_text_size">16sp</dimen>
     <dimen name="calendar_chore_text_size">13sp</dimen>
     <dimen name="calendar_chore_icon_size">18dp</dimen>
+    <dimen name="calendar_chore_check_size">20dp</dimen>
     <dimen name="calendar_chore_icon_padding">4dp</dimen>
     <dimen name="calendar_chore_margin_top">4dp</dimen>
 </resources>
