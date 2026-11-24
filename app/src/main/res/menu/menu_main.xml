@@ -49,5 +49,10 @@
             android:orderInCategory="203"
             android:title="@string/send_reminder_notification"
             app:showAsAction="never" />
+        <item
+            android:id="@+id/action_show_ftue"
+            android:orderInCategory="204"
+            android:title="@string/show_ftue"
+            app:showAsAction="never" />
     </group>
 </menu>

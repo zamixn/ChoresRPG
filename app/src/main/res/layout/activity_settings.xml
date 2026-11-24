@@ -86,63 +86,9 @@
                 style="@style/SettingsSectionHeader"
                 android:text="@string/settings_notifications_header" />
 
-            <!-- Send notifications -->
-            <LinearLayout
-                android:id="@+id/notifications_row"
-                style="@style/SettingsRow">
-
-                <LinearLayout style="@style/SettingsRowText">
-
-                    <TextView
-                        style="@style/SettingsRowTitle"
-                        android:text="@string/settings_send_notifications" />
-
-                    <TextView
-                        style="@style/SettingsRowSummary"
-                        android:text="@string/settings_send_notifications_summary" />
-                </LinearLayout>
-
-                <androidx.appcompat.widget.SwitchCompat
-                    android:id="@+id/notifications_switch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-
-            <!-- Morning time -->
-            <LinearLayout
-                android:id="@+id/morning_time_row"
-                style="@style/SettingsRow">
-
-                <LinearLayout style="@style/SettingsRowText">
-
-                    <TextView
-                        style="@style/SettingsRowTitle"
-                        android:text="@string/settings_morning_time" />
-
-                    <TextView
-                        android:id="@+id/morning_time_value"
-                        style="@style/SettingsRowSummary"
-                        tools:text="10:00" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Evening time -->
-            <LinearLayout
-                android:id="@+id/evening_time_row"
-                style="@style/SettingsRow">
-
-                <LinearLayout style="@style/SettingsRowText">
-
-                    <TextView
-                        style="@style/SettingsRowTitle"
-                        android:text="@string/settings_evening_time" />
-
-                    <TextView
-                        android:id="@+id/evening_time_value"
-                        style="@style/SettingsRowSummary"
-                        tools:text="20:00" />
-                </LinearLayout>
-            </LinearLayout>
+            <include
+                android:id="@+id/notification_settings"
+                layout="@layout/notification_settings" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/test_notification_button"

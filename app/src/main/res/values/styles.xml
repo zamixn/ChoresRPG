@@ -66,6 +66,47 @@
         <item name="android:textSize">@dimen/settings_title_text_size</item>
     </style>
 
+    <!-- First-time setup (FTUE) steps. -->
+    <style name="FtueStep">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center_vertical</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:padding">@dimen/ftue_padding</item>
+    </style>
+
+    <style name="FtueStepImage">
+        <item name="android:layout_width">@dimen/ftue_image_size</item>
+        <item name="android:layout_height">@dimen/ftue_image_size</item>
+        <item name="android:layout_marginBottom">@dimen/ftue_padding</item>
+    </style>
+
+    <style name="FtueStepTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/ftue_title_text_size</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="FtueStepText">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/settings_padding</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textSize">@dimen/settings_title_text_size</item>
+    </style>
+
+    <!-- A setting's current value that can be changed (e.g. a notification time). -->
+    <style name="SettingsTimeValue">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">@dimen/settings_value_text_size</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+    </style>
+
     <style name="SettingsRowSummary">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>

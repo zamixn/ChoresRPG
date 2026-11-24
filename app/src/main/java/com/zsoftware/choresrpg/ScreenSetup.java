@@ -14,6 +14,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.zsoftware.choresrpg.databinding.PeriodNavigatorBinding;
+import com.zsoftware.choresrpg.ftue.FtueActivity;
 import com.zsoftware.choresrpg.reminders.ChoreReminders;
 
 import java.text.DateFormat;
@@ -47,6 +48,31 @@ public class ScreenSetup {
                 return windowInsets;
             }
         });
+    }
+
+    // For a screen without a toolbar (the first-time setup): keeps all of it inside the status bar,
+    // navigation bar, camera cutout and keyboard.
+    public static void ApplySafeAreaInsetsToScreen(View screen)
+    {
+        ViewCompat.setOnApplyWindowInsetsListener(screen, new OnApplyWindowInsetsListener() {
+            @NonNull
+            @Override
+            public WindowInsetsCompat onApplyWindowInsets(@NonNull View view, @NonNull WindowInsetsCompat windowInsets) {
+                Insets bars = windowInsets.getInsets(INSET_TYPES);
+                Insets ime = windowInsets.getInsets(WindowInsetsCompat.Type.ime());
+                view.setPadding(bars.left, bars.top, bars.right, Math.max(bars.bottom, ime.bottom));
+                return windowInsets;
+            }
+        });
+    }
+
+    // Debug option "show first-time setup": opens the FTUE again. Returns true when the item was this one.
+    public static boolean HandleDebugFtueItem(Activity activity, int itemId)
+    {
+        if (itemId != R.id.action_show_ftue)
+            return false;
+        activity.startActivity(FtueActivity.CreateIntent(activity));
+        return true;
     }
 
     // For a floating button placed directly in the screen's CoordinatorLayout (outside the padded

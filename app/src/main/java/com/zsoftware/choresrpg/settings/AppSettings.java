@@ -49,6 +49,11 @@ public class AppSettings {
     public int GetEveningTime() { return SharedPreferences.getInt(EveningTimeKey, DefaultEveningTime); }
     public void SetEveningTime(int minutes) { Save(SharedPreferences.edit().putInt(EveningTimeKey, minutes)); }
 
+    // The first-time setup (FTUE) was finished; until then it opens when the app starts.
+    private static final String FtueCompletedKey = "FtueCompleted";
+    public boolean IsFtueCompleted() { return SharedPreferences.getBoolean(FtueCompletedKey, false); }
+    public void SetFtueCompleted(boolean completed) { Save(SharedPreferences.edit().putBoolean(FtueCompletedKey, completed)); }
+
     private void Save(SharedPreferences.Editor editor)
     {
         editor.commit();

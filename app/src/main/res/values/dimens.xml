@@ -27,6 +27,10 @@
     <dimen name="settings_padding">8dp</dimen>
     <dimen name="settings_row_min_height">64dp</dimen>
     <dimen name="settings_title_text_size">17sp</dimen>
+    <dimen name="settings_value_text_size">20sp</dimen>
+    <dimen name="ftue_padding">24dp</dimen>
+    <dimen name="ftue_image_size">96dp</dimen>
+    <dimen name="ftue_title_text_size">26sp</dimen>
     <dimen name="history_date_text_size">17sp</dimen>
     <dimen name="dialog_content_padding">24dp</dimen>
     <dimen name="icon_picker_column_width">64dp</dimen>

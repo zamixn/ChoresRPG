@@ -19,7 +19,9 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
 import com.zsoftware.choresrpg.cloud.ChoreSync;
+import com.zsoftware.choresrpg.ftue.FtueActivity;
 import com.zsoftware.choresrpg.reminders.ChoreReminders;
+import com.zsoftware.choresrpg.settings.AppSettings;
 import com.zsoftware.choresrpg.settings.SettingsActivity;
 import com.zsoftware.choresrpg.databinding.ActivityMainBinding;
 
@@ -52,6 +54,11 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
         appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+
+        // First start: show the first-time setup on top of the week view. (Not again after a rotation.)
+        AppSettings.Initialize(this);
+        if (savedInstanceState == null && !AppSettings.Instance().IsFtueCompleted())
+            startActivity(FtueActivity.CreateIntent(this));
     }
 
     @Override
@@ -70,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        if (ScreenSetup.HandleDebugNotificationItem(this, id))
+        if (ScreenSetup.HandleDebugNotificationItem(this, id) || ScreenSetup.HandleDebugFtueItem(this, id))
             return true;
 
         // Debug: "today" moved; rebuild the screen so every date shown follows it.

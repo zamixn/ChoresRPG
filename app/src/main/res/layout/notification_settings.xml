@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Notification settings rows, used by the Settings screen and the first-time setup (FTUE).
+     Wired up by NotificationSettingsController. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Send notifications -->
+    <LinearLayout
+        android:id="@+id/notifications_row"
+        style="@style/SettingsRow">
+
+        <LinearLayout style="@style/SettingsRowText">
+
+            <TextView
+                style="@style/SettingsRowTitle"
+                android:text="@string/settings_send_notifications" />
+
+            <TextView
+                style="@style/SettingsRowSummary"
+                android:text="@string/settings_send_notifications_summary" />
+        </LinearLayout>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/notifications_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </LinearLayout>
+
+    <!-- Morning time -->
+    <LinearLayout
+        android:id="@+id/morning_time_row"
+        style="@style/SettingsRow">
+
+        <LinearLayout style="@style/SettingsRowText">
+
+            <TextView
+                style="@style/SettingsRowTitle"
+                android:text="@string/settings_morning_time" />
+
+            <TextView
+                android:id="@+id/morning_time_value"
+                style="@style/SettingsTimeValue"
+                tools:text="10:00" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/edit_morning_time_button"
+            style="@style/ChoreEditButton"
+            android:contentDescription="@string/settings_edit_morning_time" />
+    </LinearLayout>
+
+    <!-- Evening time -->
+    <LinearLayout
+        android:id="@+id/evening_time_row"
+        style="@style/SettingsRow">
+
+        <LinearLayout style="@style/SettingsRowText">
+
+            <TextView
+                style="@style/SettingsRowTitle"
+                android:text="@string/settings_evening_time" />
+
+            <TextView
+                android:id="@+id/evening_time_value"
+                style="@style/SettingsTimeValue"
+                tools:text="20:00" />
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/edit_evening_time_button"
+            style="@style/ChoreEditButton"
+            android:contentDescription="@string/settings_edit_evening_time" />
+    </LinearLayout>
+
+</LinearLayout>
