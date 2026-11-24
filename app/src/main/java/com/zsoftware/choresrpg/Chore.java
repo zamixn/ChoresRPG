@@ -58,6 +58,8 @@ public class Chore {
             RemovedCompletions.add(removed);
     }
     public void Complete() { AddCompletion(AppClock.NowMillis()); }
+    // Adds a completion at the given time (e.g. completing a missed chore on an earlier day).
+    public void CompleteAt(long time) { AddCompletion(time); }
 
     private void AddCompletion(long time)
     {

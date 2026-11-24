@@ -113,6 +113,22 @@ public class ChoreTest {
     }
 
     @Test
+    public void CompleteAt_AddsCompletionOnThatDay()
+    {
+        Chore chore = new Chore("Dishes", Arrays.asList(WeekDay.values()), ChoreIconEnum.Wash);
+        Calendar yesterday = Calendar.getInstance();
+        yesterday.add(Calendar.DAY_OF_MONTH, -1);
+        chore.CompleteAt(yesterday.getTimeInMillis());
+        assertTrue(chore.IsCompletedOn(yesterday));
+        assertFalse(chore.IsCompletedToday());
+
+        // Completing today afterwards keeps yesterday's completion too.
+        chore.Complete();
+        assertEquals(2, chore.GetCompletionHistory().size());
+        assertTrue(chore.IsCompletedToday());
+    }
+
+    @Test
     public void Complete_SetsLastCompletedToNow()
     {
         Chore chore = new Chore("Trash", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);

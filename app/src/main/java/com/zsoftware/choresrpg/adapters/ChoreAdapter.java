@@ -29,6 +29,14 @@ public class ChoreAdapter extends BaseAdapter {
     // The date the list is for; chores completed on this date get a green checkmark.
     private Calendar Date;
 
+    // Tapping a row's complete button (daily view only).
+    public interface OnCompleteClicked
+    {
+        void CompleteClicked(Chore chore);
+    }
+    // Null: rows have no complete button (weekly view).
+    private OnCompleteClicked CompleteClicked;
+
     public ChoreAdapter(Context context, List<Chore> chores, WeekDay weekDay, Calendar date) {
         this.context = context;
         this.Chores = new ArrayList();
@@ -39,6 +47,12 @@ public class ChoreAdapter extends BaseAdapter {
 
         this.WeekDay = weekDay;
         this.Date = date;
+    }
+
+    // Shows a complete button on each unfinished chore (the daily view).
+    public void SetOnCompleteClicked(OnCompleteClicked onCompleteClicked)
+    {
+        CompleteClicked = onCompleteClicked;
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -74,6 +88,15 @@ public class ChoreAdapter extends BaseAdapter {
 
         ImageView completedView = (ImageView)gridView.findViewById(R.id.completedImage);
         completedView.setVisibility(isCompleted ? View.VISIBLE : View.GONE);
+
+        // Not yet completed: a button to complete it right here (when the list offers one), in the same
+        // spot as the checkmark.
+        ImageView completeButton = (ImageView)gridView.findViewById(R.id.completeButton);
+        boolean showComplete = CompleteClicked != null && !isCompleted;
+        completeButton.setVisibility(showComplete ? View.VISIBLE : View.GONE);
+        completeButton.setOnClickListener(showComplete ? view -> CompleteClicked.CompleteClicked(chore) : null);
+        completeButton.setClickable(showComplete);
+        gridView.findViewById(R.id.statusArea).setVisibility(isCompleted || showComplete ? View.VISIBLE : View.GONE);
 
         return gridView;
     }

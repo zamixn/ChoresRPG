@@ -231,9 +231,31 @@ public class DayActivity extends AppCompatActivity {
 
         List<Chore> chores = SaveData.Instance().GetChoreList();
         ChoreAdapter adapter = new ChoreAdapter(this, chores, Day, CurrentDate);
+        // Complete buttons on every day: today, earlier days (catching up on a missed chore) and later days
+        // (doing a chore ahead of time).
+        adapter.SetOnCompleteClicked(this::CompleteChore);
         binding.dayChoresList.setAdapter(adapter);
         binding.dayChoresList.setOnItemClickListener((parent, view, position, id) ->
                 startActivity(ChoreActivity.CreateIntent(DayActivity.this, adapter.getItem(position))));
+    }
+
+    // A row's complete button: completes the chore on the shown day without opening it. Today it's
+    // completed now; on any other day, on that day at the current time of day.
+    private void CompleteChore(Chore chore)
+    {
+        Calendar completedAt = AppClock.Now();
+        if (DaysFromToday(CurrentDate) != 0)
+        {
+            Calendar now = completedAt;
+            completedAt = (Calendar) CurrentDate.clone();
+            completedAt.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY));
+            completedAt.set(Calendar.MINUTE, now.get(Calendar.MINUTE));
+            completedAt.set(Calendar.SECOND, now.get(Calendar.SECOND));
+        }
+        chore.CompleteAt(completedAt.getTimeInMillis());
+        SaveData.Instance().UpdateChore(chore);
+        ShortToast.Show(this, R.string.chore_completed);
+        ShowChores();
     }
 
     @Override

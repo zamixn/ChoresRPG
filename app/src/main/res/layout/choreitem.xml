@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?attr/selectableItemBackground">
+    android:background="?attr/selectableItemBackground"
+    android:descendantFocusability="blocksDescendants">
 
     <ImageView
         android:id="@+id/iconImage"
@@ -24,16 +25,35 @@
         android:text="TextView"
         android:textSize="@dimen/normal_text_size" />
 
-    <!-- Shown when the chore is completed on the day the list is for. -->
-    <ImageView
-        android:id="@+id/completedImage"
-        android:layout_width="@dimen/chore_completed_check_size"
-        android:layout_height="@dimen/chore_completed_check_size"
+    <!-- One spot at the end of the row, so the complete button and the green checkmark line up:
+         the button (daily view, unfinished chore) or the checkmark (completed). -->
+    <FrameLayout
+        android:id="@+id/statusArea"
+        android:layout_width="@dimen/chore_view_edit_button_size"
+        android:layout_height="@dimen/chore_view_edit_button_size"
         android:layout_gravity="center_vertical"
-        android:layout_marginStart="@dimen/chore_completed_check_margin"
-        android:layout_marginEnd="@dimen/chore_completed_check_margin"
-        android:contentDescription="@string/chore_completed_check"
-        android:visibility="gone"
-        app:srcCompat="@drawable/ic_complete"
-        app:tint="@color/completed_green" />
+        android:visibility="gone">
+
+        <!-- Completes the chore without opening it. Only this spot reacts; the rest of the row opens the chore. -->
+        <ImageView
+            android:id="@+id/completeButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/complete_chore"
+            android:padding="@dimen/chore_completed_check_margin"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_complete_outline" />
+
+        <!-- Shown when the chore is completed on the day the list is for. -->
+        <ImageView
+            android:id="@+id/completedImage"
+            android:layout_width="@dimen/chore_completed_check_size"
+            android:layout_height="@dimen/chore_completed_check_size"
+            android:layout_gravity="center"
+            android:contentDescription="@string/chore_completed_check"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_complete"
+            app:tint="@color/completed_green" />
+    </FrameLayout>
 </androidx.appcompat.widget.LinearLayoutCompat>
