@@ -18,6 +18,8 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
+import com.zsoftware.choresrpg.reminders.ChoreReminders;
+import com.zsoftware.choresrpg.settings.SettingsActivity;
 import com.zsoftware.choresrpg.databinding.ActivityMainBinding;
 
 import android.view.Menu;
@@ -36,6 +38,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         SaveData.Initialize(this);
         ChoreIconDictionary.Initialize(this);
+        // Make sure the daily notification alarms are set (they are lost e.g. when the app is force-stopped).
+        ChoreReminders.Schedule(this);
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -73,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 

@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Daily chore notifications (Android 13+ asks the user first), and setting their alarms again after a reboot. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -50,6 +54,26 @@
             android:exported="false"
             android:label="@string/add_chore"
             android:theme="@style/Theme.ChoresRPG.NoActionBar" />
+        <activity
+            android:name=".settings.SettingsActivity"
+            android:exported="false"
+            android:label="@string/action_settings"
+            android:theme="@style/Theme.ChoresRPG.NoActionBar" />
+
+        <receiver
+            android:name=".reminders.ReminderAlarmReceiver"
+            android:exported="false" />
+        <!-- System events only; exported so Android can deliver them. -->
+        <receiver
+            android:name=".reminders.ReminderRescheduleReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

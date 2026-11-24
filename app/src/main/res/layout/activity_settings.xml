@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".settings.SettingsActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/app_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimaryVariant"
+        android:theme="@style/Theme.ChoresRPG.AppBarOverlay">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/Theme.ChoresRPG.PopupOverlay" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/content_settings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="@dimen/settings_padding"
+            android:paddingBottom="@dimen/settings_padding">
+
+            <TextView
+                style="@style/SettingsSectionHeader"
+                android:text="@string/settings_notifications_header" />
+
+            <!-- Send notifications -->
+            <LinearLayout
+                android:id="@+id/notifications_row"
+                style="@style/SettingsRow">
+
+                <LinearLayout style="@style/SettingsRowText">
+
+                    <TextView
+                        style="@style/SettingsRowTitle"
+                        android:text="@string/settings_send_notifications" />
+
+                    <TextView
+                        style="@style/SettingsRowSummary"
+                        android:text="@string/settings_send_notifications_summary" />
+                </LinearLayout>
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/notifications_switch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- Morning time -->
+            <LinearLayout
+                android:id="@+id/morning_time_row"
+                style="@style/SettingsRow">
+
+                <LinearLayout style="@style/SettingsRowText">
+
+                    <TextView
+                        style="@style/SettingsRowTitle"
+                        android:text="@string/settings_morning_time" />
+
+                    <TextView
+                        android:id="@+id/morning_time_value"
+                        style="@style/SettingsRowSummary"
+                        tools:text="10:00" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Evening time -->
+            <LinearLayout
+                android:id="@+id/evening_time_row"
+                style="@style/SettingsRow">
+
+                <LinearLayout style="@style/SettingsRowText">
+
+                    <TextView
+                        style="@style/SettingsRowTitle"
+                        android:text="@string/settings_evening_time" />
+
+                    <TextView
+                        android:id="@+id/evening_time_value"
+                        style="@style/SettingsRowSummary"
+                        tools:text="20:00" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/test_notification_button"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/chore_view_padding"
+                android:layout_marginTop="@dimen/chore_view_section_spacing"
+                android:layout_marginEnd="@dimen/chore_view_padding"
+                android:text="@string/settings_test_notification" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

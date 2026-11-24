@@ -21,6 +21,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
+import com.zsoftware.choresrpg.settings.SettingsActivity;
 import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
 import com.zsoftware.choresrpg.databinding.ActivityMonthBinding;
 import com.zsoftware.choresrpg.databinding.CalendarDayCellBinding;
@@ -133,6 +134,7 @@ public class MonthActivity extends AppCompatActivity {
         }
 
         if (id == R.id.action_settings) {
+            startActivity(new Intent(this, SettingsActivity.class));
             return true;
         }
 

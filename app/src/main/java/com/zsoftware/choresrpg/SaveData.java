@@ -2,7 +2,7 @@ package com.zsoftware.choresrpg;
 
 import static android.content.Context.MODE_PRIVATE;
 
-import android.app.Activity;
+import android.content.Context;
 import android.app.Application;
 import android.content.SharedPreferences;
 import android.util.Log;
@@ -25,7 +25,7 @@ public class SaveData {
     // preferences file named after that activity. Open that same file by name so every activity
     // (MainActivity, MonthActivity) reads and writes the same chore list.
     private static final String PreferencesFileName = "MainActivity";
-    public static void Initialize(Activity context)
+    public static void Initialize(Context context)
     {
         _Instance = new SaveData();
         _Instance.SharedPreferences = context.getSharedPreferences(PreferencesFileName, MODE_PRIVATE);

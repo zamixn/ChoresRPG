@@ -24,6 +24,9 @@
     <dimen name="chore_completed_check_margin">12dp</dimen>
     <dimen name="chore_view_buttons_spacing">32dp</dimen>
     <dimen name="history_item_padding">10dp</dimen>
+    <dimen name="settings_padding">8dp</dimen>
+    <dimen name="settings_row_min_height">64dp</dimen>
+    <dimen name="settings_title_text_size">17sp</dimen>
     <dimen name="history_date_text_size">17sp</dimen>
     <dimen name="dialog_content_padding">24dp</dimen>
     <dimen name="icon_picker_column_width">64dp</dimen>
