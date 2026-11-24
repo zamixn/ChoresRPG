@@ -28,6 +28,14 @@
     <dimen name="settings_row_min_height">64dp</dimen>
     <dimen name="settings_title_text_size">17sp</dimen>
     <dimen name="settings_value_text_size">20sp</dimen>
+    <dimen name="tutorial_popup_width">280dp</dimen>
+    <dimen name="tutorial_popup_padding">16dp</dimen>
+    <dimen name="tutorial_popup_corner_radius">12dp</dimen>
+    <dimen name="tutorial_popup_elevation">8dp</dimen>
+    <dimen name="tutorial_popup_gap">12dp</dimen>
+    <dimen name="tutorial_popup_margin">12dp</dimen>
+    <dimen name="tutorial_hole_padding">6dp</dimen>
+    <dimen name="tutorial_ring_width">2dp</dimen>
     <dimen name="ftue_padding">24dp</dimen>
     <dimen name="ftue_image_size">96dp</dimen>
     <dimen name="ftue_title_text_size">26sp</dimen>

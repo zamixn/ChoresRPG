@@ -96,8 +96,9 @@ public class FtueActivity extends AppCompatActivity {
         if (Step == StepDone)
         {
             AppSettings.Instance().SetFtueCompleted(true);
-            // Done: continue in the daily view (the app's default view), on top of the week view.
-            startActivity(DayActivity.CreateDailyViewIntent(this));
+            // Done: continue in the daily view (the app's default view), on top of the week view, with a
+            // short tutorial of its buttons.
+            startActivity(DayActivity.CreateDailyViewWithTutorialIntent(this));
             finish();
             return;
         }

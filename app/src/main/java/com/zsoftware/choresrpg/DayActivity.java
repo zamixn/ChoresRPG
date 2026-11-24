@@ -13,13 +13,17 @@ import androidx.activity.OnBackPressedCallback;
 import androidx.activity.SystemBarStyle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.ActionMenuView;
+import androidx.appcompat.widget.Toolbar;
 
 import com.zsoftware.choresrpg.adapters.ChoreAdapter;
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
 import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.databinding.ActivityDayBinding;
+import com.zsoftware.choresrpg.tutorial.TutorialOverlay;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -32,6 +36,7 @@ public class DayActivity extends AppCompatActivity {
     private static final String ExtraWeekDay = "WeekDay";
     private static final String ExtraDateMillis = "DateMillis";
     private static final String ExtraDailyView = "DailyView";
+    private static final String ExtraShowTutorial = "ShowTutorial";
     private static final String StateDateMillis = "DateMillis";
 
     private ActivityDayBinding binding;
@@ -55,6 +60,48 @@ public class DayActivity extends AppCompatActivity {
         Intent intent = CreateIntent(context, WeekDay.FromCalendar(today), today);
         intent.putExtra(ExtraDailyView, true);
         return intent;
+    }
+
+    // The daily view, starting with the short tutorial of its buttons (after the first-time setup).
+    public static Intent CreateDailyViewWithTutorialIntent(Context context)
+    {
+        Intent intent = CreateDailyViewIntent(context);
+        intent.putExtra(ExtraShowTutorial, true);
+        return intent;
+    }
+
+    // The tutorial: +, then the daily / weekly / monthly buttons, then ⋮, each highlighted in turn.
+    private void StartTutorial()
+    {
+        TutorialOverlay.Show(this, Arrays.asList(
+                new TutorialOverlay.Step(() -> binding.addChoreFab,
+                        R.string.tutorial_add_title, R.string.tutorial_add_text),
+                new TutorialOverlay.Step(() -> binding.toolbar.findViewById(R.id.action_daily_view),
+                        R.string.tutorial_daily_title, R.string.tutorial_daily_text),
+                new TutorialOverlay.Step(() -> binding.toolbar.findViewById(R.id.action_weekly_view),
+                        R.string.tutorial_weekly_title, R.string.tutorial_weekly_text),
+                new TutorialOverlay.Step(() -> binding.toolbar.findViewById(R.id.action_monthly_view),
+                        R.string.tutorial_monthly_title, R.string.tutorial_monthly_text),
+                new TutorialOverlay.Step(() -> FindOverflowButton(binding.toolbar),
+                        R.string.tutorial_more_title, R.string.tutorial_more_text)));
+    }
+
+    // The toolbar's ⋮ button: the last button in its menu area that isn't one of the menu's own items.
+    private static View FindOverflowButton(Toolbar toolbar)
+    {
+        for (int i = 0; i < toolbar.getChildCount(); i++)
+        {
+            if (!(toolbar.getChildAt(i) instanceof ActionMenuView))
+                continue;
+            ActionMenuView menuView = (ActionMenuView) toolbar.getChildAt(i);
+            for (int j = menuView.getChildCount() - 1; j >= 0; j--)
+            {
+                View button = menuView.getChildAt(j);
+                if (button.getId() == View.NO_ID)
+                    return button;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -100,6 +147,10 @@ public class DayActivity extends AppCompatActivity {
         ScreenSetup.ApplyFabInsets(binding.addChoreFab);
         binding.addChoreFab.setOnClickListener(view ->
                 startActivity(AddChoreActivity.CreateIntent(DayActivity.this, Day)));
+
+        // Right after the first-time setup: explain the buttons (once; not again after a rotation).
+        if (savedInstanceState == null && getIntent().getBooleanExtra(ExtraShowTutorial, false))
+            binding.toolbar.post(this::StartTutorial);
     }
 
     // Reloads on every return, so chores edited or deleted in the chore view show up correctly.
