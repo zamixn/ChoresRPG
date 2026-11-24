@@ -12,8 +12,13 @@ public class ShortToast {
 
     public static void Show(Context context, int textId)
     {
+        Show(context, context.getString(textId));
+    }
+
+    public static void Show(Context context, String text)
+    {
         // Application context: the toast may outlive the screen that showed it (e.g. after deleting a chore).
-        Toast toast = Toast.makeText(context.getApplicationContext(), textId, Toast.LENGTH_SHORT);
+        Toast toast = Toast.makeText(context.getApplicationContext(), text, Toast.LENGTH_SHORT);
         toast.show();
         new Handler(Looper.getMainLooper()).postDelayed(toast::cancel, DurationMillis);
     }

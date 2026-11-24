@@ -265,18 +265,18 @@ public class ChoreActivity extends AppCompatActivity {
     // it undoes the most recent completion; the full list is in the chore history.)
     private void ShowEditLastCompletedDialog()
     {
-        Calendar current = Calendar.getInstance();
+        Calendar current = AppClock.Now();
         if (CurrentChore.GetLastCompleted() != null)
             current.setTimeInMillis(CurrentChore.GetLastCompleted());
 
         DatePickerDialog dialog = new DatePickerDialog(this, (picker, year, month, dayOfMonth) -> {
             Calendar picked = (Calendar) current.clone();
             picked.set(year, month, dayOfMonth);
-            long now = System.currentTimeMillis();
+            long now = AppClock.NowMillis();
             CurrentChore.SetLastCompleted(Math.min(picked.getTimeInMillis(), now));
             SaveChore();
         }, current.get(Calendar.YEAR), current.get(Calendar.MONTH), current.get(Calendar.DAY_OF_MONTH));
-        dialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+        dialog.getDatePicker().setMaxDate(AppClock.NowMillis());
         dialog.show();
     }
 

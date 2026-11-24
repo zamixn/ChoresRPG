@@ -18,6 +18,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
 import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
@@ -67,7 +68,7 @@ public class MonthActivity extends AppCompatActivity {
         setSupportActionBar(binding.toolbar);
         setTitle(R.string.monthly_view);
 
-        DisplayedMonth = GetFirstOfMonth(Calendar.getInstance());
+        DisplayedMonth = GetFirstOfMonth(AppClock.Now());
         if (savedInstanceState != null && savedInstanceState.containsKey(StateDisplayedMonth))
             DisplayedMonth.setTimeInMillis(savedInstanceState.getLong(StateDisplayedMonth));
         ScreenSetup.SetupPeriodNavigator(binding.periodNavigator, R.string.previous_month, R.string.next_month,
@@ -93,7 +94,7 @@ public class MonthActivity extends AppCompatActivity {
 
     private void ShowCurrentMonth()
     {
-        DisplayedMonth = GetFirstOfMonth(Calendar.getInstance());
+        DisplayedMonth = GetFirstOfMonth(AppClock.Now());
         ScrollPending = true;
         BuildCalendar();
     }
@@ -116,12 +117,20 @@ public class MonthActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         ScreenSetup.MarkCurrentView(menu, R.id.action_monthly_view);
+        ScreenSetup.SetupDebugMenu(menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+
+        // Debug: "today" moved; rebuild the screen so every date shown follows it.
+        if (ScreenSetup.HandleDebugMenuItem(this, id))
+        {
+            recreate();
+            return true;
+        }
 
         if (id == R.id.action_settings) {
             return true;
@@ -159,7 +168,7 @@ public class MonthActivity extends AppCompatActivity {
         LayoutInflater inflater = getLayoutInflater();
 
         Calendar month = (Calendar) DisplayedMonth.clone();
-        Calendar now = Calendar.getInstance();
+        Calendar now = AppClock.Now();
         boolean isCurrentMonth = now.get(Calendar.YEAR) == month.get(Calendar.YEAR)
                 && now.get(Calendar.MONTH) == month.get(Calendar.MONTH);
         // Day of the month to highlight as today; -1 when another month is shown.
@@ -255,24 +264,36 @@ public class MonthActivity extends AppCompatActivity {
                 continue;
             TextView choreView = (TextView) inflater.inflate(R.layout.calendar_day_chore, cell.dayChores, false);
             choreView.setText(chore.GetDescription());
-            SetChoreIcon(choreView, chore.GetIcon());
+            SetChoreIcons(choreView, chore.GetIcon(), chore.IsCompletedOn(date));
             cell.dayChores.addView(choreView);
         }
         return cell.getRoot();
     }
 
-    private void SetChoreIcon(TextView choreView, ChoreIconEnum iconType)
+    // The chore's icon before its name, and a green checkmark after it when it was completed that day
+    // (same as the week and day views).
+    private void SetChoreIcons(TextView choreView, ChoreIconEnum iconType, boolean isCompleted)
     {
-        if (iconType == null)
-            return;
-        Drawable icon = ChoreIconDictionary.Instance().GetIcon(iconType);
-        if (icon == null || icon.getConstantState() == null)
-            return;
-        // Each cell needs its own copy: the dictionary's drawables are shared and get resized here.
-        Drawable copy = icon.getConstantState().newDrawable(getResources()).mutate();
         int size = getResources().getDimensionPixelSize(R.dimen.calendar_chore_icon_size);
-        copy.setBounds(0, 0, size, size);
-        choreView.setCompoundDrawablesRelative(copy, null, null, null);
+
+        Drawable copy = null;
+        Drawable icon = iconType == null ? null : ChoreIconDictionary.Instance().GetIcon(iconType);
+        if (icon != null && icon.getConstantState() != null)
+        {
+            // Each cell needs its own copy: the dictionary's drawables are shared and get resized here.
+            copy = icon.getConstantState().newDrawable(getResources()).mutate();
+            copy.setBounds(0, 0, size, size);
+        }
+
+        Drawable check = null;
+        if (isCompleted)
+        {
+            check = ContextCompat.getDrawable(this, R.drawable.ic_complete).mutate();
+            check.setTint(ContextCompat.getColor(this, R.color.completed_green));
+            check.setBounds(0, 0, size, size);
+        }
+
+        choreView.setCompoundDrawablesRelative(copy, null, check, null);
     }
 
     private LinearLayout NewWeekRow()

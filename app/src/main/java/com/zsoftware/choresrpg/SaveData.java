@@ -31,6 +31,18 @@ public class SaveData {
         _Instance.SharedPreferences = context.getSharedPreferences(PreferencesFileName, MODE_PRIVATE);
         if (BuildConfig.DEBUG)
             _Instance.AddDebugDataOnce();
+        // The simulated day (debug options) is kept between app starts; release builds use the real date.
+        AppClock.SetDayOffset(BuildConfig.DEBUG ? _Instance.SharedPreferences.getInt(SimulatedDayOffsetKey, 0) : 0);
+    }
+
+    // Debug builds only: moves the whole app's "today" by this many days (see AppClock) and saves it.
+    private static final String SimulatedDayOffsetKey = "SimulatedDayOffset";
+    public void SetSimulatedDayOffset(int dayOffset)
+    {
+        AppClock.SetDayOffset(dayOffset);
+        SharedPreferences.Editor editor = SharedPreferences.edit();
+        editor.putInt(SimulatedDayOffsetKey, dayOffset);
+        editor.commit();
     }
 
     // Debug builds only: appends the sample chores from DebugData to the saved chore list, once per

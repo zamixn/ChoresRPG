@@ -158,7 +158,7 @@ public class ChoreListFragment extends Fragment {
 
     private WeekDay GetCurrentWeekDay()
     {
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = AppClock.Now();
         int day = calendar.get(Calendar.DAY_OF_WEEK);
 
         switch (day)

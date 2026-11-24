@@ -20,7 +20,7 @@ public enum WeekDay {
     // The date of this weekday in the current week (weeks start on Monday, like the week view).
     public Calendar GetDateThisWeek()
     {
-        Calendar date = Calendar.getInstance();
+        Calendar date = AppClock.Now();
         int todayIndex = FromCalendar(date).ordinal();
         date.add(Calendar.DAY_OF_MONTH, ordinal() - todayIndex);
         return date;

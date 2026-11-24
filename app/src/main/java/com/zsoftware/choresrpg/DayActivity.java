@@ -55,7 +55,7 @@ public class DayActivity extends AppCompatActivity {
         if (getSupportActionBar() != null)
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        CurrentDate = Calendar.getInstance();
+        CurrentDate = AppClock.Now();
         if (savedInstanceState != null && savedInstanceState.containsKey(StateDateMillis))
             CurrentDate.setTimeInMillis(savedInstanceState.getLong(StateDateMillis));
         else if (getIntent().hasExtra(ExtraDateMillis))
@@ -95,7 +95,7 @@ public class DayActivity extends AppCompatActivity {
 
     private void ShowToday()
     {
-        CurrentDate = Calendar.getInstance();
+        CurrentDate = AppClock.Now();
         Day = WeekDay.FromCalendar(CurrentDate);
         ShowChores();
     }
@@ -122,7 +122,7 @@ public class DayActivity extends AppCompatActivity {
     // e.g. "Monday, 23 November" (with the year when it isn't this year).
     private String GetDayTitle()
     {
-        boolean isThisYear = CurrentDate.get(Calendar.YEAR) == Calendar.getInstance().get(Calendar.YEAR);
+        boolean isThisYear = CurrentDate.get(Calendar.YEAR) == AppClock.Now().get(Calendar.YEAR);
         String pattern = isThisYear ? "d MMMM" : "d MMMM yyyy";
         String dayAndMonth = new SimpleDateFormat(pattern, Locale.getDefault()).format(CurrentDate.getTime());
         return getString(GetFullDayName(Day)) + ", " + dayAndMonth;
@@ -146,7 +146,7 @@ public class DayActivity extends AppCompatActivity {
     // Whole calendar days between today and the date (negative in the past).
     private static int DaysFromToday(Calendar date)
     {
-        Calendar today = StartOfDay(Calendar.getInstance());
+        Calendar today = StartOfDay(AppClock.Now());
         Calendar day = StartOfDay((Calendar) date.clone());
         // Rounded, because a daylight saving change makes a day 23 or 25 hours long.
         return (int) Math.round((day.getTimeInMillis() - today.getTimeInMillis()) / 86400000.0);

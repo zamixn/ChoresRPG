@@ -43,7 +43,7 @@ public class Chore {
         if (!CompletionHistory.isEmpty())
             CompletionHistory.remove(CompletionHistory.size() - 1);
     }
-    public void Complete() { AddCompletion(System.currentTimeMillis()); }
+    public void Complete() { AddCompletion(AppClock.NowMillis()); }
 
     private void AddCompletion(long time)
     {
@@ -64,7 +64,7 @@ public class Chore {
         }
         return false;
     }
-    public boolean IsCompletedToday() { return IsCompletedOn(Calendar.getInstance()); }
+    public boolean IsCompletedToday() { return IsCompletedOn(AppClock.Now()); }
 
     // True when this chore was loaded from data saved before chores had ids; the loaded chore got a
     // new id, and the list has to be saved again so the id sticks.

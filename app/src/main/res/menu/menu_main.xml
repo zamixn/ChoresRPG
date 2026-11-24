@@ -24,4 +24,25 @@
         android:orderInCategory="99"
         android:title="@string/delete_all_save_data"
         app:showAsAction="never" />
+
+    <!-- Debug builds only (shown by ScreenSetup.SetupDebugMenu): move the app's "today". -->
+    <group
+        android:id="@+id/debug_options"
+        android:visible="false">
+        <item
+            android:id="@+id/action_simulate_next_day"
+            android:orderInCategory="200"
+            android:title="@string/simulate_next_day"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/action_simulate_previous_day"
+            android:orderInCategory="201"
+            android:title="@string/simulate_previous_day"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/action_simulate_real_day"
+            android:orderInCategory="202"
+            android:title="@string/simulate_real_day"
+            app:showAsAction="never" />
+    </group>
 </menu>

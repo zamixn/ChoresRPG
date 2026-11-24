@@ -1,5 +1,6 @@
 package com.zsoftware.choresrpg;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -13,6 +14,8 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.zsoftware.choresrpg.databinding.PeriodNavigatorBinding;
+
+import java.text.DateFormat;
 
 // Shared setup for the app's screens: safe-area padding, the view switch buttons and the
 // previous / next bar.
@@ -77,6 +80,36 @@ public class ScreenSetup {
         navigator.previousButton.setOnClickListener(view -> onPrevious.run());
         navigator.nextButton.setOnClickListener(view -> onNext.run());
         navigator.periodLabel.setOnClickListener(view -> onCurrent.run());
+    }
+
+    // Debug builds: shows the "simulate next / previous day" options in the ⋮ menu ("back to the real
+    // day" only while a day is simulated).
+    public static void SetupDebugMenu(Menu menu)
+    {
+        menu.setGroupVisible(R.id.debug_options, BuildConfig.DEBUG);
+        MenuItem realDay = menu.findItem(R.id.action_simulate_real_day);
+        if (realDay != null)
+            realDay.setVisible(BuildConfig.DEBUG && AppClock.GetDayOffset() != 0);
+    }
+
+    // Handles the debug day options: moves the app's "today" (AppClock) and shows the new date.
+    // Returns true when the item was one of them; the screen then has to redraw itself.
+    public static boolean HandleDebugMenuItem(Activity activity, int itemId)
+    {
+        int dayOffset = AppClock.GetDayOffset();
+        if (itemId == R.id.action_simulate_next_day)
+            dayOffset++;
+        else if (itemId == R.id.action_simulate_previous_day)
+            dayOffset--;
+        else if (itemId == R.id.action_simulate_real_day)
+            dayOffset = 0;
+        else
+            return false;
+
+        SaveData.Instance().SetSimulatedDayOffset(dayOffset);
+        String today = DateFormat.getDateInstance(DateFormat.FULL).format(AppClock.Now().getTime());
+        ShortToast.Show(activity, activity.getString(R.string.simulated_day, today));
+        return true;
     }
 
     // Dims and disables the toolbar button of the view that is already open.
