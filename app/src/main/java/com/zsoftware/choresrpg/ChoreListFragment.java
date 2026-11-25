@@ -1,23 +1,24 @@
 package com.zsoftware.choresrpg;
 
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 
+import com.google.android.material.color.MaterialColors;
 import com.zsoftware.choresrpg.adapters.ChoreAdapter;
 import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.databinding.FragmentChoreListBinding;
+import com.zsoftware.choresrpg.databinding.WeekDayHeaderBinding;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -28,8 +29,7 @@ public class ChoreListFragment extends Fragment {
 
     private FragmentChoreListBinding binding;
     private Dictionary<WeekDay, LinearLayout> ChoreLists;
-    private Dictionary<WeekDay, ImageView> WeekImages;
-    private Dictionary<WeekDay, TextView> WeekTexts;
+    private Dictionary<WeekDay, WeekDayHeaderBinding> DayHeaders;
 
     private static final String StateWeekOffset = "WeekOffset";
     // Which week is shown: 0 = this week, -1 = last week, 1 = next week, ... (the arrows change it).
@@ -57,28 +57,19 @@ public class ChoreListFragment extends Fragment {
         ChoreLists.put(WeekDay.Saturday, binding.saturdayChoreList);
         ChoreLists.put(WeekDay.Sunday, binding.sundayChoreList);
 
-        WeekImages = new Hashtable<WeekDay, ImageView>();
-        WeekImages.put(WeekDay.Monday, binding.mondayImageView);
-        WeekImages.put(WeekDay.Tuesday, binding.tuesdayImageView);
-        WeekImages.put(WeekDay.Wednesday, binding.wednesdayImageView);
-        WeekImages.put(WeekDay.Thursday, binding.thursdayImageView);
-        WeekImages.put(WeekDay.Friday, binding.fridayImageView);
-        WeekImages.put(WeekDay.Saturday, binding.saturdayImageView);
-        WeekImages.put(WeekDay.Sunday, binding.sundayImageView);
-
-        WeekTexts = new Hashtable<WeekDay, TextView>();
-        WeekTexts.put(WeekDay.Monday, binding.mondayText);
-        WeekTexts.put(WeekDay.Tuesday, binding.tuesdayText);
-        WeekTexts.put(WeekDay.Wednesday, binding.wednesdayText);
-        WeekTexts.put(WeekDay.Thursday, binding.thursdayText);
-        WeekTexts.put(WeekDay.Friday, binding.fridaytext);
-        WeekTexts.put(WeekDay.Saturday, binding.saturdayText);
-        WeekTexts.put(WeekDay.Sunday, binding.sundayText);
+        DayHeaders = new Hashtable<WeekDay, WeekDayHeaderBinding>();
+        DayHeaders.put(WeekDay.Monday, binding.mondayHeader);
+        DayHeaders.put(WeekDay.Tuesday, binding.tuesdayHeader);
+        DayHeaders.put(WeekDay.Wednesday, binding.wednesdayHeader);
+        DayHeaders.put(WeekDay.Thursday, binding.thursdayHeader);
+        DayHeaders.put(WeekDay.Friday, binding.fridayHeader);
+        DayHeaders.put(WeekDay.Saturday, binding.saturdayHeader);
+        DayHeaders.put(WeekDay.Sunday, binding.sundayHeader);
 
         for (WeekDay d: WeekDay.values())
         {
             WeekDay wd = d;
-            WeekImages.get(d).setOnClickListener(view12 ->
+            DayHeaders.get(d).dayCard.setOnClickListener(view12 ->
                     startActivity(DayActivity.CreateIntent(requireContext(), wd, GetDate(wd))));
         }
 
@@ -124,7 +115,7 @@ public class ChoreListFragment extends Fragment {
     }
 
     // Fills every day's chore list for the shown week (all are always visible; the fragment scrolls),
-    // puts the date in each day's header and highlights today when the current week is shown.
+    // and each day's header card (date, chore summary; today highlighted when the current week is shown).
     public void UpdateChoreListViews()
     {
         WeekDay selectedWeek = WeekOffset == 0 ? GetCurrentWeekDay() : null;
@@ -139,22 +130,50 @@ public class ChoreListFragment extends Fragment {
             ChoreAdapter adapter = new ChoreAdapter(getContext(), chores, d, date);
             LinearLayout list = ChoreLists.get(d);
             list.removeAllViews();
+            int done = 0;
             for (int i = 0; i < adapter.getCount(); i++)
             {
                 Chore chore = adapter.getItem(i);
+                if (chore.IsCompletedOn(date))
+                    done++;
                 View row = adapter.getView(i, null, list);
                 row.setOnClickListener(rowView ->
                         startActivity(ChoreActivity.CreateIntent(requireContext(), chore)));
                 list.addView(row);
             }
-
-            // e.g. "Monday 23"
-            WeekTexts.get(d).setText(getString(R.string.week_day_header, getString(FullDayNames[d.ordinal()]), date.get(Calendar.DAY_OF_MONTH)));
-
-            ImageView iv = WeekImages.get(d);
-            int box = d == selectedWeek ? R.drawable.rounded_box_selected : R.drawable.rounded_box;
-            iv.setImageDrawable(ContextCompat.getDrawable(requireContext(), box));
+            ShowDayHeader(DayHeaders.get(d), d, date, d == selectedWeek, adapter.getCount(), done);
         }
+    }
+
+    // A day's header card: date badge, name, and e.g. "Today · 3 chores · 1 done". Today's badge is filled
+    // and its outline thicker.
+    private void ShowDayHeader(WeekDayHeaderBinding header, WeekDay day, Calendar date, boolean isToday, int choreCount, int doneCount)
+    {
+        String dayName = getString(FullDayNames[day.ordinal()]);
+        header.dayNumber.setText(String.valueOf(date.get(Calendar.DAY_OF_MONTH)));
+        header.dayName.setText(dayName);
+
+        List<String> summary = new ArrayList<>();
+        if (isToday)
+            summary.add(getString(R.string.today));
+        if (choreCount == 0)
+            summary.add(getString(R.string.week_day_no_chores));
+        else
+        {
+            summary.add(getResources().getQuantityString(R.plurals.week_day_chore_count, choreCount, choreCount));
+            if (doneCount == choreCount)
+                summary.add(getString(R.string.week_day_all_done));
+            else if (doneCount > 0)
+                summary.add(getResources().getQuantityString(R.plurals.week_day_done_count, doneCount, doneCount));
+        }
+        header.daySummary.setText(TextUtils.join(getString(R.string.week_day_summary_separator), summary));
+
+        header.dayNumber.setBackgroundResource(isToday ? R.drawable.week_day_badge_today : R.drawable.week_day_badge);
+        header.dayNumber.setTextColor(MaterialColors.getColor(header.dayNumber,
+                isToday ? com.google.android.material.R.attr.colorOnPrimary : androidx.appcompat.R.attr.colorPrimary));
+        header.dayCard.setStrokeWidth(getResources().getDimensionPixelSize(
+                isToday ? R.dimen.week_day_header_stroke_today : R.dimen.week_day_header_stroke));
+        header.dayCard.setContentDescription(getString(R.string.week_day_open, dayName + " " + date.get(Calendar.DAY_OF_MONTH)));
     }
 
     private WeekDay GetCurrentWeekDay()

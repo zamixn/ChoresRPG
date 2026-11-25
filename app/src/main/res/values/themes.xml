@@ -21,6 +21,8 @@
 
     <style name="Theme.ChoresRPG.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
-    <style name="Theme.ChoresRPG.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+    <!-- The ⋮ menu: follows light / dark mode like the rest of the app (its background is the app's surface
+         color, so its text has to switch with it). -->
+    <style name="Theme.ChoresRPG.PopupOverlay" parent="ThemeOverlay.AppCompat.DayNight" />
 
 </resources>

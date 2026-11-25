@@ -22,43 +22,16 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@id/period_navigator">
 
+        <!-- Each day: its header card (week_day_header.xml; tapping it opens the day), then its chores. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="@dimen/chore_list_bottom_padding"
-            android:visibility="visible">
+            android:paddingBottom="@dimen/chore_list_bottom_padding">
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/monday_imageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/chore_icon_size"
-                    android:layout_marginStart="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginEnd="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginTop="@dimen/chore_list_divider_margin_top_bottom"
-                    android:layout_marginBottom="@dimen/chore_list_divider_margin_top_bottom"
-                    android:src="@drawable/rounded_box_selected" />
-
-                <TextView
-                    android:id="@+id/monday_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignLeft="@+id/monday_imageView"
-                    android:layout_alignTop="@+id/monday_imageView"
-                    android:layout_alignRight="@+id/monday_imageView"
-                    android:layout_alignBottom="@+id/monday_imageView"
-                    android:layout_marginStart="1dp"
-                    android:layout_marginTop="1dp"
-                    android:layout_marginEnd="1dp"
-                    android:layout_marginBottom="1dp"
-                    android:gravity="center"
-                    android:text="@string/week_day_button_monday_full"
-                    android:textSize="@dimen/big_text_size" />
-            </RelativeLayout>
+            <include
+                android:id="@+id/monday_header"
+                layout="@layout/week_day_header" />
 
             <LinearLayout
                 android:id="@+id/monday_chore_list"
@@ -66,36 +39,9 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/tuesday_imageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/chore_icon_size"
-                    android:layout_marginStart="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginEnd="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginTop="@dimen/chore_list_divider_margin_top_bottom"
-                    android:layout_marginBottom="@dimen/chore_list_divider_margin_top_bottom"
-                    android:src="@drawable/rounded_box_selected" />
-
-                <TextView
-                    android:id="@+id/tuesday_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignLeft="@+id/tuesday_imageView"
-                    android:layout_alignTop="@+id/tuesday_imageView"
-                    android:layout_alignRight="@+id/tuesday_imageView"
-                    android:layout_alignBottom="@+id/tuesday_imageView"
-                    android:layout_marginStart="1dp"
-                    android:layout_marginTop="1dp"
-                    android:layout_marginEnd="1dp"
-                    android:layout_marginBottom="1dp"
-                    android:gravity="center"
-                    android:text="@string/week_day_button_tuesday_full"
-                    android:textSize="@dimen/big_text_size" />
-            </RelativeLayout>
+            <include
+                android:id="@+id/tuesday_header"
+                layout="@layout/week_day_header" />
 
             <LinearLayout
                 android:id="@+id/tuesday_chore_list"
@@ -103,36 +49,9 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/wednesday_imageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/chore_icon_size"
-                    android:layout_marginStart="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginEnd="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginTop="@dimen/chore_list_divider_margin_top_bottom"
-                    android:layout_marginBottom="@dimen/chore_list_divider_margin_top_bottom"
-                    android:src="@drawable/rounded_box_selected" />
-
-                <TextView
-                    android:id="@+id/wednesday_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignLeft="@+id/wednesday_imageView"
-                    android:layout_alignTop="@+id/wednesday_imageView"
-                    android:layout_alignRight="@+id/wednesday_imageView"
-                    android:layout_alignBottom="@+id/wednesday_imageView"
-                    android:layout_marginStart="1dp"
-                    android:layout_marginTop="1dp"
-                    android:layout_marginEnd="1dp"
-                    android:layout_marginBottom="1dp"
-                    android:gravity="center"
-                    android:text="@string/week_day_button_wednesday_full"
-                    android:textSize="@dimen/big_text_size" />
-            </RelativeLayout>
+            <include
+                android:id="@+id/wednesday_header"
+                layout="@layout/week_day_header" />
 
             <LinearLayout
                 android:id="@+id/wednesday_chore_list"
@@ -140,36 +59,9 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/thursday_imageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/chore_icon_size"
-                    android:layout_marginStart="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginEnd="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginTop="@dimen/chore_list_divider_margin_top_bottom"
-                    android:layout_marginBottom="@dimen/chore_list_divider_margin_top_bottom"
-                    android:src="@drawable/rounded_box_selected" />
-
-                <TextView
-                    android:id="@+id/thursday_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignLeft="@+id/thursday_imageView"
-                    android:layout_alignTop="@+id/thursday_imageView"
-                    android:layout_alignRight="@+id/thursday_imageView"
-                    android:layout_alignBottom="@+id/thursday_imageView"
-                    android:layout_marginStart="1dp"
-                    android:layout_marginTop="1dp"
-                    android:layout_marginEnd="1dp"
-                    android:layout_marginBottom="1dp"
-                    android:gravity="center"
-                    android:text="@string/week_day_button_thursday_full"
-                    android:textSize="@dimen/big_text_size" />
-            </RelativeLayout>
+            <include
+                android:id="@+id/thursday_header"
+                layout="@layout/week_day_header" />
 
             <LinearLayout
                 android:id="@+id/thursday_chore_list"
@@ -177,36 +69,9 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/friday_imageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/chore_icon_size"
-                    android:layout_marginStart="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginEnd="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginTop="@dimen/chore_list_divider_margin_top_bottom"
-                    android:layout_marginBottom="@dimen/chore_list_divider_margin_top_bottom"
-                    android:src="@drawable/rounded_box_selected" />
-
-                <TextView
-                    android:id="@+id/fridaytext"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignLeft="@+id/friday_imageView"
-                    android:layout_alignTop="@+id/friday_imageView"
-                    android:layout_alignRight="@+id/friday_imageView"
-                    android:layout_alignBottom="@+id/friday_imageView"
-                    android:layout_marginStart="1dp"
-                    android:layout_marginTop="1dp"
-                    android:layout_marginEnd="1dp"
-                    android:layout_marginBottom="1dp"
-                    android:gravity="center"
-                    android:text="@string/week_day_button_friday_full"
-                    android:textSize="@dimen/big_text_size" />
-            </RelativeLayout>
+            <include
+                android:id="@+id/friday_header"
+                layout="@layout/week_day_header" />
 
             <LinearLayout
                 android:id="@+id/friday_chore_list"
@@ -214,37 +79,9 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
 
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/saturday_imageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/chore_icon_size"
-                    android:layout_marginStart="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginEnd="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginTop="@dimen/chore_list_divider_margin_top_bottom"
-                    android:layout_marginBottom="@dimen/chore_list_divider_margin_top_bottom"
-                    android:src="@drawable/rounded_box_selected" />
-
-                <TextView
-                    android:id="@+id/saturday_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignLeft="@+id/saturday_imageView"
-                    android:layout_alignTop="@+id/saturday_imageView"
-                    android:layout_alignRight="@+id/saturday_imageView"
-                    android:layout_alignBottom="@+id/saturday_imageView"
-                    android:layout_marginStart="1dp"
-                    android:layout_marginTop="1dp"
-                    android:layout_marginEnd="1dp"
-                    android:layout_marginBottom="1dp"
-                    android:gravity="center"
-                    android:text="@string/week_day_button_saturday_full"
-                    android:textSize="@dimen/big_text_size" />
-            </RelativeLayout>
+            <include
+                android:id="@+id/saturday_header"
+                layout="@layout/week_day_header" />
 
             <LinearLayout
                 android:id="@+id/saturday_chore_list"
@@ -252,43 +89,15 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
 
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ImageView
-                    android:id="@+id/sunday_imageView"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/chore_icon_size"
-                    android:layout_marginStart="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginEnd="@dimen/chore_list_divider_margin_sides"
-                    android:layout_marginTop="@dimen/chore_list_divider_margin_top_bottom"
-                    android:layout_marginBottom="@dimen/chore_list_divider_margin_top_bottom"
-                    android:src="@drawable/rounded_box_selected" />
-
-                <TextView
-                    android:id="@+id/sunday_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignLeft="@+id/sunday_imageView"
-                    android:layout_alignTop="@+id/sunday_imageView"
-                    android:layout_alignRight="@+id/sunday_imageView"
-                    android:layout_alignBottom="@+id/sunday_imageView"
-                    android:layout_marginStart="1dp"
-                    android:layout_marginTop="1dp"
-                    android:layout_marginEnd="1dp"
-                    android:layout_marginBottom="1dp"
-                    android:gravity="center"
-                    android:text="@string/week_day_button_sunday_full"
-                    android:textSize="@dimen/big_text_size" />
-            </RelativeLayout>
+            <include
+                android:id="@+id/sunday_header"
+                layout="@layout/week_day_header" />
 
             <LinearLayout
                 android:id="@+id/sunday_chore_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
-
 
         </LinearLayout>
     </ScrollView>

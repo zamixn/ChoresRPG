@@ -57,4 +57,13 @@
     <dimen name="calendar_chore_check_size">20dp</dimen>
     <dimen name="calendar_chore_icon_padding">4dp</dimen>
     <dimen name="calendar_chore_margin_top">4dp</dimen>
+    <!-- Day headers in the weekly view (week_day_header.xml) -->
+    <dimen name="week_day_header_margin_top">12dp</dimen>
+    <dimen name="week_day_header_corner_radius">16dp</dimen>
+    <dimen name="week_day_header_stroke">1dp</dimen>
+    <dimen name="week_day_header_stroke_today">2dp</dimen>
+    <dimen name="week_day_header_padding">12dp</dimen>
+    <dimen name="week_day_badge_size">48dp</dimen>
+    <dimen name="week_day_badge_text_size">20sp</dimen>
+    <dimen name="week_day_name_text_size">20sp</dimen>
 </resources>

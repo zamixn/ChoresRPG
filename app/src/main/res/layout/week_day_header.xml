@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One day's header in the weekly view (ChoreListFragment): date badge, day name, a short summary of its
+     chores, and an arrow; tapping it opens the day. Today gets a filled badge and a thicker outline. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/day_card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/chore_list_divider_margin_sides"
+    android:layout_marginTop="@dimen/week_day_header_margin_top"
+    android:layout_marginEnd="@dimen/chore_list_divider_margin_sides"
+    android:layout_marginBottom="@dimen/chore_list_divider_margin_top_bottom"
+    android:clickable="true"
+    android:focusable="true"
+    app:cardCornerRadius="@dimen/week_day_header_corner_radius"
+    app:cardElevation="0dp"
+    app:strokeColor="?attr/colorPrimary"
+    app:strokeWidth="@dimen/week_day_header_stroke">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="@dimen/week_day_header_padding">
+
+        <TextView
+            android:id="@+id/day_number"
+            android:layout_width="@dimen/week_day_badge_size"
+            android:layout_height="@dimen/week_day_badge_size"
+            android:background="@drawable/week_day_badge"
+            android:gravity="center"
+            android:textColor="?attr/colorPrimary"
+            android:textSize="@dimen/week_day_badge_text_size"
+            android:textStyle="bold"
+            tools:text="23" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/week_day_header_padding"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/day_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/week_day_name_text_size"
+                android:textStyle="bold"
+                tools:text="Monday" />
+
+            <TextView
+                android:id="@+id/day_summary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:alpha="0.7"
+                tools:text="Today · 3 chores · 1 done" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:importantForAccessibility="no"
+            app:srcCompat="@drawable/ic_next"
+            app:tint="?attr/colorControlNormal" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
