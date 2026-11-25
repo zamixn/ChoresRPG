@@ -82,6 +82,45 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/ftue_local_only" />
+
+                <!-- Shown instead of the two buttons above while signed in. -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/sign_out_button"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/ftue_padding"
+                    android:text="@string/settings_sign_out"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- 2b. Groups (only while signed in) -->
+            <LinearLayout
+                android:id="@+id/step_groups"
+                style="@style/FtueStep"
+                android:visibility="gone">
+
+                <TextView
+                    style="@style/FtueStepTitle"
+                    android:text="@string/ftue_groups_title" />
+
+                <TextView
+                    style="@style/FtueStepText"
+                    android:text="@string/ftue_groups_text" />
+
+                <TextView
+                    android:id="@+id/groups_status"
+                    style="@style/FtueStepText"
+                    android:textStyle="bold"
+                    tools:text="Your groups: Žygimantas's group (main)" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/create_group_button"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/ftue_padding"
+                    android:text="@string/group_create_new" />
             </LinearLayout>
 
             <!-- 3. Settings -->

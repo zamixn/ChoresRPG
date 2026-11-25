@@ -101,6 +101,8 @@
     <string name="group_code_empty">Enter an invite code</string>
     <string name="group_code_continue">Continue</string>
     <string name="group_create_new">Create a new group</string>
+    <string name="group_create">Create</string>
+    <string name="group_make_main">Make it my main group (new chores go here)</string>
     <string name="group_created">New group created</string>
     <string name="group_choose">Choose a group</string>
     <string name="group_leave">Leave group</string>
@@ -154,7 +156,11 @@
     <string name="ftue_welcome_title">Welcome to ChoresRPG</string>
     <string name="ftue_welcome_text">Plan your household chores by weekday, tick them off as you finish them, and keep track by week, month and day.</string>
     <string name="ftue_account_title">Back up your chores?</string>
-    <string name="ftue_account_text">Sign in with Google to back up your chores and use them on your other devices. Or keep them only on this phone. You can change this later in Settings.</string>
+    <string name="ftue_account_text">Sign in with Google to back up your chores, use them on other devices, and share them with others in groups. Or keep them only on this phone. You can change this later in Settings.</string>
+    <string name="ftue_groups_title">Share chores in groups</string>
+    <string name="ftue_groups_text">Your chores live in groups, and everyone in a group shares its chores. You start with a group of your own; invite family or flatmates to it from Settings → View groups.\n\nYou can be in several groups, and all their chores show together. New chores go into your main group unless you pick another one when adding them.</string>
+    <string name="ftue_groups_list">Your groups: %1$s</string>
+    <string name="ftue_groups_main">%1$s (main)</string>
     <string name="ftue_local_only">Keep chores on this phone only</string>
     <string name="ftue_settings_title">Daily reminders</string>
     <string name="ftue_settings_text">Get a morning and evening notification listing today\'s chores. Turn them on and pick times that suit you.</string>

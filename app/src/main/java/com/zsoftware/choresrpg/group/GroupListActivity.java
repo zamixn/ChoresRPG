@@ -113,21 +113,9 @@ public class GroupListActivity extends AppCompatActivity {
         }
     }
 
-    // Asks for a name, creates the group and opens it.
+    // Asks for a name (and whether it becomes the main group), creates the group and opens it.
     private void CreateNewGroup()
     {
-        GroupDialogs.AskName(this, R.string.group_create_new, null, name -> {
-            binding.createGroupButton.setEnabled(false);
-            GroupManager.CreateNewGroup(name, groupId -> {
-                binding.createGroupButton.setEnabled(true);
-                if (groupId == null)
-                {
-                    ShortToast.Show(this, R.string.group_action_failed);
-                    return;
-                }
-                ShortToast.Show(this, R.string.group_created);
-                startActivity(GroupActivity.CreateIntent(this, groupId));
-            });
-        });
+        GroupDialogs.CreateGroup(this, false, groupId -> startActivity(GroupActivity.CreateIntent(this, groupId)));
     }
 }

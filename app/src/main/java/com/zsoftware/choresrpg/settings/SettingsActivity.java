@@ -176,10 +176,11 @@ public class SettingsActivity extends AppCompatActivity {
         GroupManager.Clear();
         if (!keepLocalChores)
             SaveData.Instance().ClearLocalChores();
-        AccountManager.SignOut(this, () -> {
-            ShortToast.Show(this, R.string.signed_out);
-            ShowAccount();
-        });
+        // Signed out of Firebase as soon as this returns; only forgetting the remembered Google account
+        // finishes later (and may take a while), so the screen shows the signed-out state right away.
+        AccountManager.SignOut(this, () -> { });
+        ShortToast.Show(this, R.string.signed_out);
+        ShowAccount();
     }
 
     // Popup 1: confirm deleting the account (red Delete button). Popup 2: keep the chores on this phone?

@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Group name input for the rename / create-group popups. -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Group name input for the rename / create-group popups; creating also shows the "main group" toggle. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:paddingStart="@dimen/dialog_content_padding"
     android:paddingTop="@dimen/chore_view_day_margin"
     android:paddingEnd="@dimen/dialog_content_padding">
@@ -20,4 +22,13 @@
             android:maxLength="60" />
     </com.google.android.material.textfield.TextInputLayout>
 
-</FrameLayout>
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/main_group_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/chore_view_day_margin"
+        android:text="@string/group_make_main"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+</LinearLayout>

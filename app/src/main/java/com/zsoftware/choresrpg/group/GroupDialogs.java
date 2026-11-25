@@ -2,11 +2,13 @@ package com.zsoftware.choresrpg.group;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.view.View;
 
 import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.zsoftware.choresrpg.R;
+import com.zsoftware.choresrpg.ShortToast;
 import com.zsoftware.choresrpg.cloud.Group;
 import com.zsoftware.choresrpg.cloud.GroupManager;
 import com.zsoftware.choresrpg.databinding.DialogGroupNameBinding;
@@ -85,7 +87,7 @@ public class GroupDialogs {
         });
     }
 
-    // Asks for a group name (rename / new group). Empty names keep the popup open.
+    // Asks for a group name (rename). Empty names keep the popup open.
     public static void AskName(Activity activity, int titleId, String startName, OnName onName)
     {
         DialogGroupNameBinding input = DialogGroupNameBinding.inflate(activity.getLayoutInflater());
@@ -94,11 +96,46 @@ public class GroupDialogs {
             input.nameInput.setText(startName);
             input.nameInput.setSelection(startName.length());
         }
+        ShowNameDialog(activity, titleId, input, R.string.save, name -> onName.Name(name));
+    }
+
+    public interface OnCreated
+    {
+        // Called once the group exists (not when cancelled or failed).
+        void Created(String groupId);
+    }
+
+    // Create a new group: asks for its name and whether it becomes the main group (the toggle starts as
+    // 'mainByDefault'), creates it, and says so with a toast.
+    public static void CreateGroup(Activity activity, boolean mainByDefault, OnCreated onCreated)
+    {
+        DialogGroupNameBinding input = DialogGroupNameBinding.inflate(activity.getLayoutInflater());
+        input.mainGroupSwitch.setVisibility(View.VISIBLE);
+        input.mainGroupSwitch.setChecked(mainByDefault);
+        ShowNameDialog(activity, R.string.group_create_new, input, R.string.group_create, name -> {
+            boolean makeMain = input.mainGroupSwitch.isChecked();
+            GroupManager.CreateNewGroup(name, groupId -> {
+                if (groupId == null)
+                {
+                    ShortToast.Show(activity, R.string.group_action_failed);
+                    return;
+                }
+                if (makeMain)
+                    GroupManager.SetMainGroup(groupId);
+                ShortToast.Show(activity, R.string.group_created);
+                onCreated.Created(groupId);
+            });
+        });
+    }
+
+    // The name popup; empty names keep it open.
+    private static void ShowNameDialog(Activity activity, int titleId, DialogGroupNameBinding input, int okId, OnName onName)
+    {
         AlertDialog dialog = new MaterialAlertDialogBuilder(activity)
                 .setTitle(titleId)
                 .setView(input.getRoot())
                 .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton(R.string.save, null)
+                .setPositiveButton(okId, null)
                 .show();
         // Set after show() so an empty name keeps the popup open.
         dialog.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(view -> {
