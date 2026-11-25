@@ -14,6 +14,7 @@ import androidx.core.view.OnApplyWindowInsetsListener;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.zsoftware.choresrpg.cloud.GroupManager;
 import com.zsoftware.choresrpg.databinding.PeriodNavigatorBinding;
 import com.zsoftware.choresrpg.ftue.FtueActivity;
 import com.zsoftware.choresrpg.settings.AppSettings;
@@ -22,6 +23,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.zsoftware.choresrpg.reminders.ChoreReminders;
 
 import java.text.DateFormat;
+import java.util.List;
+import java.util.Random;
 
 // Shared setup for the app's screens: safe-area padding, the view switch buttons and the
 // previous / next bar.
@@ -72,11 +75,16 @@ public class ScreenSetup {
 
     // The header (toolbar) items shared by the daily, weekly and monthly views: the three view buttons,
     // Settings, Delete All Save Data and the debug options. Returns true when the item was handled.
-    // 'redraw' runs after all chores were deleted.
+    // 'redraw' runs after chores were deleted or added.
     public static boolean HandleHeaderMenuItem(Activity activity, int itemId, Runnable redraw)
     {
         if (HandleDebugNotificationItem(activity, itemId) || HandleDebugFtueItem(activity, itemId))
             return true;
+        if (HandleDebugRandomChoresItem(activity, itemId))
+        {
+            redraw.run();
+            return true;
+        }
         // Debug: "today" moved; rebuild the screen so every date shown follows it.
         if (HandleDebugMenuItem(activity, itemId))
         {
@@ -211,6 +219,24 @@ public class ScreenSetup {
             ShortToast.Show(activity, R.string.notifications_blocked);
         else if (!ChoreReminders.ShowTodayNotification(activity, ChoreReminders.Morning))
             ShortToast.Show(activity, R.string.reminder_no_chores_today);
+        return true;
+    }
+
+    // Debug option "add random chores": adds a few random chores (DebugData) to the main group, or to no
+    // group while signed out. Returns true when the item was this one; the screen then has to redraw itself.
+    private static final int RandomChoreCount = 5;
+    public static boolean HandleDebugRandomChoresItem(Activity activity, int itemId)
+    {
+        if (itemId != R.id.action_add_random_chores)
+            return false;
+        List<Chore> added = DebugData.GetRandomChores(new Random(), RandomChoreCount);
+        String groupId = GroupManager.GetMainGroupId();
+        for (Chore chore : added)
+            chore.SetGroupId(groupId);
+        List<Chore> chores = SaveData.Instance().GetChoreList();
+        chores.addAll(added);
+        SaveData.Instance().SaveChoreList(chores);
+        ShortToast.Show(activity, activity.getResources().getQuantityString(R.plurals.random_chores_added, added.size(), added.size()));
         return true;
     }
 

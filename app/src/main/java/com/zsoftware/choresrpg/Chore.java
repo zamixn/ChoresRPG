@@ -67,9 +67,27 @@ public class Chore {
     {
         if (CompletionHistory.isEmpty())
             return;
-        Long removed = CompletionHistory.remove(CompletionHistory.size() - 1);
-        if (!RemovedCompletions.contains(removed))
-            RemovedCompletions.add(removed);
+        RemoveCompletion(CompletionHistory.get(CompletionHistory.size() - 1));
+    }
+    // Undoes one completion (e.g. deleted from the history). Remembered as removed, so syncing doesn't bring it back.
+    public void RemoveCompletion(long time)
+    {
+        if (!CompletionHistory.remove(Long.valueOf(time)))
+            return;
+        if (!RemovedCompletions.contains(time))
+            RemovedCompletions.add(time);
+    }
+    // Undoes every completion on the same calendar day as the given date (e.g. "not done today after all").
+    public void RemoveCompletionsOn(Calendar date)
+    {
+        Calendar completed = Calendar.getInstance(date.getTimeZone());
+        for (Long time : new ArrayList<>(CompletionHistory))
+        {
+            completed.setTimeInMillis(time);
+            if (completed.get(Calendar.YEAR) == date.get(Calendar.YEAR)
+                    && completed.get(Calendar.DAY_OF_YEAR) == date.get(Calendar.DAY_OF_YEAR))
+                RemoveCompletion(time);
+        }
     }
     public void Complete() { AddCompletion(AppClock.NowMillis()); }
     // Adds a completion at the given time (e.g. completing a missed chore on an earlier day).

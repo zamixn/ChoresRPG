@@ -11,14 +11,14 @@
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimaryVariant"
+        android:background="@color/status_bar"
         android:theme="@style/Theme.ChoresRPG.AppBarOverlay">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/top_bar"
             app:popupTheme="@style/Theme.ChoresRPG.PopupOverlay" />
 
     </com.google.android.material.appbar.AppBarLayout>

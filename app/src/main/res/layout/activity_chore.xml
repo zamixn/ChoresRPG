@@ -10,14 +10,14 @@
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorPrimaryVariant"
+        android:background="@color/status_bar"
         android:theme="@style/Theme.ChoresRPG.AppBarOverlay">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/top_bar"
             app:popupTheme="@style/Theme.ChoresRPG.PopupOverlay">
 
             <!-- Title bar: chore icon and description, each with its edit button. -->
@@ -118,17 +118,6 @@
                         android:textSize="@dimen/normal_text_size"
                         tools:text="23 Nov 2026, 21:40" />
                 </LinearLayout>
-
-                <ImageButton
-                    android:id="@+id/reset_last_completed_button"
-                    style="@style/ChoreEditButton"
-                    android:contentDescription="@string/reset_last_completed"
-                    android:src="@drawable/ic_reset" />
-
-                <ImageButton
-                    android:id="@+id/edit_last_completed_button"
-                    style="@style/ChoreEditButton"
-                    android:contentDescription="@string/edit_last_completed" />
             </LinearLayout>
 
             <!-- Group (signed in only) -->

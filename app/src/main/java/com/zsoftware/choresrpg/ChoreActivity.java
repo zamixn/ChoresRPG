@@ -1,6 +1,5 @@
 package com.zsoftware.choresrpg;
 
-import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -28,12 +27,12 @@ import com.zsoftware.choresrpg.databinding.DialogEditDescriptionBinding;
 
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-// Shows all data of one chore. Every property has an edit button; the chore can also be marked as
-// completed (once per day) or deleted. Opened by tapping a chore in the week view or the day view.
+// Shows all data of one chore. The description, icon and days have edit buttons; the chore can also be
+// marked as completed today (tap again to undo) or deleted, and its completions are listed (and can be
+// deleted) in the history. Opened by tapping a chore in the week view or the day view.
 public class ChoreActivity extends AppCompatActivity {
 
     private static final String ExtraChoreId = "ChoreId";
@@ -93,10 +92,8 @@ public class ChoreActivity extends AppCompatActivity {
         DefaultCompleteButtonTint = binding.completeButton.getBackgroundTintList();
 
         binding.editIconButton.setOnClickListener(view -> ShowEditIconDialog());
-        binding.resetLastCompletedButton.setOnClickListener(view -> ResetLastCompleted());
         binding.editDescriptionButton.setOnClickListener(view -> ShowEditDescriptionDialog());
         binding.editDaysButton.setOnClickListener(view -> ShowEditDaysDialog());
-        binding.editLastCompletedButton.setOnClickListener(view -> ShowEditLastCompletedDialog());
         binding.completeButton.setOnClickListener(view -> CompleteChore());
         binding.deleteButton.setOnClickListener(view -> ShowDeleteDialog());
         binding.viewHistoryButton.setOnClickListener(view ->
@@ -177,9 +174,6 @@ public class ChoreActivity extends AppCompatActivity {
         else
             binding.choreLastCompletedText.setText(
                     DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT).format(new Date(lastCompleted)));
-        // Nothing to reset when the chore was never completed.
-        binding.resetLastCompletedButton.setEnabled(lastCompleted != null);
-        binding.resetLastCompletedButton.setAlpha(lastCompleted != null ? 1f : 0.3f);
 
         // The group it's shared in (known once signed in and the groups are loaded).
         Group group = GroupManager.GetGroup(chore.GetGroupId());
@@ -187,7 +181,7 @@ public class ChoreActivity extends AppCompatActivity {
         if (group != null)
             binding.choreGroupText.setText(group.Name);
 
-        // Completed today: green button that only tells the user it's already done.
+        // Completed today: green button; tapping it again undoes today's completion.
         if (chore.IsCompletedToday())
         {
             binding.completeButton.setBackgroundTintList(
@@ -208,24 +202,20 @@ public class ChoreActivity extends AppCompatActivity {
         ShowChore();
     }
 
+    // The complete button toggles today: completes the chore, or (green "Completed today") undoes today's
+    // completion. Older completions are managed in the chore history.
     private void CompleteChore()
     {
         if (CurrentChore.IsCompletedToday())
         {
-            ShortToast.Show(this, R.string.chore_already_completed);
+            CurrentChore.RemoveCompletionsOn(AppClock.Now());
+            SaveChore();
+            ShortToast.Show(this, R.string.chore_uncompleted);
             return;
         }
         CurrentChore.Complete();
         SaveChore();
         ShortToast.Show(this, R.string.chore_completed);
-    }
-
-    // Undoes the most recent completion; the one before it becomes the last completed.
-    private void ResetLastCompleted()
-    {
-        CurrentChore.RemoveLastCompletion();
-        SaveChore();
-        ShortToast.Show(this, R.string.last_completed_reset);
     }
 
     private void ShowEditDescriptionDialog()
@@ -288,26 +278,6 @@ public class ChoreActivity extends AppCompatActivity {
                     SaveChore();
                 })
                 .show();
-    }
-
-    // Moves the most recent completion to another date (adds a completion if there is none). The time of
-    // day is kept from the old value (or now). Future dates can't be picked. (The reset button next to
-    // it undoes the most recent completion; the full list is in the chore history.)
-    private void ShowEditLastCompletedDialog()
-    {
-        Calendar current = AppClock.Now();
-        if (CurrentChore.GetLastCompleted() != null)
-            current.setTimeInMillis(CurrentChore.GetLastCompleted());
-
-        DatePickerDialog dialog = new DatePickerDialog(this, (picker, year, month, dayOfMonth) -> {
-            Calendar picked = (Calendar) current.clone();
-            picked.set(year, month, dayOfMonth);
-            long now = AppClock.NowMillis();
-            CurrentChore.SetLastCompleted(Math.min(picked.getTimeInMillis(), now));
-            SaveChore();
-        }, current.get(Calendar.YEAR), current.get(Calendar.MONTH), current.get(Calendar.DAY_OF_MONTH));
-        dialog.getDatePicker().setMaxDate(AppClock.NowMillis());
-        dialog.show();
     }
 
     // Confirmation popup: shows the chore's own icon and name so it's clear what will be removed,

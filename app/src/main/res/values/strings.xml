@@ -44,14 +44,15 @@
     <string name="edit_icon">Edit icon</string>
     <string name="edit_description">Edit description</string>
     <string name="edit_days">Edit days</string>
-    <string name="edit_last_completed">Edit last completed date</string>
     <string name="description_empty">The description can\'t be empty</string>
     <string name="complete_chore">Complete chore</string>
     <string name="chore_completed">Chore completed</string>
+    <string name="chore_uncompleted">Marked as not done today</string>
     <string name="completed_today">Completed today</string>
-    <string name="chore_already_completed">Already completed today</string>
-    <string name="reset_last_completed">Undo last completion</string>
-    <string name="last_completed_reset">Last completion undone</string>
+    <string name="history_delete_entry">Delete this completion</string>
+    <string name="history_delete_title">Delete this completion?</string>
+    <string name="history_delete_message">%1$s will be removed from the history.</string>
+    <string name="history_entry_deleted">Completion deleted</string>
     <string name="chore_completed_check">Completed</string>
     <string name="delete_chore">Delete chore</string>
     <string name="delete_chore_title">Delete chore?</string>
@@ -167,6 +168,11 @@
     <string name="ftue_done_title">All done!</string>
     <string name="ftue_done_text">Add your first chore with the + button. You can change any of this later in Settings, in the ⋮ menu.</string>
     <string name="show_ftue">dbg: show first-time setup</string>
+    <string name="add_random_chores">dbg: add random chores</string>
+    <plurals name="random_chores_added">
+        <item quantity="one">Added %1$d random chore</item>
+        <item quantity="other">Added %1$d random chores</item>
+    </plurals>
     <string name="tutorial_step">%1$d of %2$d</string>
     <string name="tutorial_next">Next</string>
     <string name="tutorial_done">Got it</string>

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- One completion in the chore history: green check, date, time. -->
+<!-- One completion in the chore history: green check, date, time, and a delete button. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -39,5 +39,15 @@
             android:layout_height="wrap_content"
             tools:text="21:40" />
     </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/delete_button"
+        android:layout_width="@dimen/chore_view_edit_button_size"
+        android:layout_height="@dimen/chore_view_edit_button_size"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/history_delete_entry"
+        android:focusable="false"
+        app:srcCompat="@drawable/ic_delete"
+        app:tint="@color/delete_red" />
 
 </LinearLayout>

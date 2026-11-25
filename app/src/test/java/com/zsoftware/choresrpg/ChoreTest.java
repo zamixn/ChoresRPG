@@ -255,6 +255,44 @@ public class ChoreTest {
     }
 
     @Test
+    public void RemoveCompletion_RemovesOnlyThatOne()
+    {
+        Chore chore = new Chore("Mop", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
+        chore.CompleteAt(1000L);
+        chore.CompleteAt(2000L);
+        chore.CompleteAt(3000L);
+        chore.RemoveCompletion(2000L);
+        assertEquals(Arrays.asList(1000L, 3000L), chore.GetCompletionHistory());
+        assertTrue(chore.GetRemovedCompletions().contains(2000L));
+        chore.RemoveCompletion(5000L);   // not there: nothing happens
+        assertEquals(2, chore.GetCompletionHistory().size());
+        assertFalse(chore.GetRemovedCompletions().contains(5000L));
+        // Survives saving.
+        assertEquals(Arrays.asList(1000L, 3000L), Chore.Parse(chore.ToSaveDataString()).GetCompletionHistory());
+    }
+
+    @Test
+    public void RemoveCompletionsOn_RemovesThatDayOnly()
+    {
+        Calendar day = Calendar.getInstance();
+        day.set(2026, Calendar.NOVEMBER, 25, 9, 0, 0);
+        Calendar sameDayLater = (Calendar) day.clone();
+        sameDayLater.set(Calendar.HOUR_OF_DAY, 20);
+        Calendar dayBefore = (Calendar) day.clone();
+        dayBefore.add(Calendar.DAY_OF_MONTH, -1);
+
+        Chore chore = new Chore("Mop", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
+        chore.CompleteAt(dayBefore.getTimeInMillis());
+        chore.CompleteAt(day.getTimeInMillis());
+        chore.CompleteAt(sameDayLater.getTimeInMillis());
+        chore.RemoveCompletionsOn(day);
+
+        assertFalse(chore.IsCompletedOn(day));
+        assertTrue(chore.IsCompletedOn(dayBefore));
+        assertEquals(Long.valueOf(dayBefore.getTimeInMillis()), chore.GetLastCompleted());
+    }
+
+    @Test
     public void RoundTrip_KeepsGroup()
     {
         Chore chore = new Chore("Mop", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);

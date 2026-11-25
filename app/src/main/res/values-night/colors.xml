@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark mode header and status bar strip: a deep purple, so the white icons and text stay readable
+         (the light lavender primary color of dark mode is too pale behind white). -->
+    <color name="top_bar">#FF2D1B5C</color>
+    <color name="status_bar">#FF23154A</color>
+</resources>

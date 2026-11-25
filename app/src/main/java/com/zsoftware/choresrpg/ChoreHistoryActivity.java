@@ -1,6 +1,7 @@
 package com.zsoftware.choresrpg;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -11,8 +12,11 @@ import android.widget.BaseAdapter;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
 import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.databinding.ActivityChoreHistoryBinding;
@@ -24,7 +28,8 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-// ChoreHistory: every past completion of one chore, newest first. Opened from the chore view.
+// ChoreHistory: every past completion of one chore, newest first; each can be deleted. Opened from the
+// chore view.
 public class ChoreHistoryActivity extends AppCompatActivity {
 
     private static final String ExtraChoreId = "ChoreId";
@@ -142,10 +147,39 @@ public class ChoreHistoryActivity extends AppCompatActivity {
             else
                 row = (ChoreHistoryItemBinding) convertView.getTag();
 
-            Date completed = new Date(getItem(position));
+            long time = getItem(position);
+            Date completed = new Date(time);
             row.completionDate.setText(DayFormat.format(completed));
             row.completionTime.setText(TimeFormat.format(completed));
+            row.deleteButton.setOnClickListener(view -> AskDeleteCompletion(time));
             return row.getRoot();
         }
+    }
+
+    // Confirmation popup (red Delete button), then removes that one completion from the chore.
+    private void AskDeleteCompletion(long time)
+    {
+        String when = DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.SHORT).format(new Date(time));
+        AlertDialog dialog = new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.history_delete_title)
+                .setMessage(getString(R.string.history_delete_message, when))
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.delete, (d, which) -> DeleteCompletion(time))
+                .show();
+        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setTextColor(ContextCompat.getColor(this, R.color.delete_red));
+    }
+
+    private void DeleteCompletion(long time)
+    {
+        Chore chore = SaveData.Instance().GetChore(ChoreId);
+        if (chore == null)
+        {
+            LoadHistory();
+            return;
+        }
+        chore.RemoveCompletion(time);
+        SaveData.Instance().UpdateChore(chore);
+        ShortToast.Show(this, R.string.history_entry_deleted);
+        LoadHistory();
     }
 }

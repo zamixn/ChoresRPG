@@ -13,6 +13,10 @@
     <color name="completed_green">#FF2E7D32</color>
     <!-- The dark layer over the screen during the tutorial. -->
     <color name="tutorial_dim">#B3000000</color>
+    <!-- The header (toolbar with the daily / weekly / monthly buttons) and the status bar strip above it.
+         White icons and text sit on both; dark mode has its own values (values-night/colors.xml). -->
+    <color name="top_bar">#FF6200EE</color>
+    <color name="status_bar">#FF5300D0</color>
     <!-- Fill color of the generated chore_icon_* vector icons. -->
     <color name="chore_icon">#FF00897B</color>
 </resources>
