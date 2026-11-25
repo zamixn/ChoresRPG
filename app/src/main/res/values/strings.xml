@@ -79,7 +79,11 @@
     <string name="group_name_hint">Group name</string>
     <string name="group_name_empty">The name can\'t be empty</string>
     <string name="group_invite">Invite people</string>
-    <string name="group_invite_message">Join my group \"%1$s\" in ChoresRPG to share our chores.\n\nTap this link: %2$s\n\nIf the link can\'t be tapped, open ChoresRPG, go to Settings → View group → Join with a code, and enter: %3$s</string>
+    <string name="group_invite_choice_message">Share a link that opens the app, or just the group code. Some messaging apps don\'t let people tap the link; a code can always be typed in with \"Join with a code\".</string>
+    <string name="group_invite_share_link">Share link</string>
+    <string name="group_invite_share_code">Share code</string>
+    <string name="group_invite_link_message">Join my group \"%1$s\" in ChoresRPG to share our chores: %2$s</string>
+    <string name="group_invite_code_message">Join my group \"%1$s\" in ChoresRPG to share our chores. Open ChoresRPG, go to Settings → View group → Join with a code, and enter: %2$s</string>
     <string name="group_join_with_code">Join with a code</string>
     <string name="group_code_message">Enter the invite code someone sent you, or paste their whole invite.</string>
     <string name="group_code_hint">Invite code</string>

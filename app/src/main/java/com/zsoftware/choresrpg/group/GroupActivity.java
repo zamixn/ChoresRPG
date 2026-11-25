@@ -150,9 +150,23 @@ public class GroupActivity extends AppCompatActivity {
                 }));
     }
 
-    // Shares an invite (any app: messages, mail ...) with both the app link and the code. Some apps don't
-    // make choresrpg:// links tappable, so the code can be typed in with "Join with a code" instead.
+    // Asks whether to share the invite link or just the code. Some apps don't make choresrpg:// links
+    // tappable; a code can always be typed in with "Join with a code".
     private void Invite()
+    {
+        if (GroupManager.GetCurrentGroup() == null)
+            return;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.group_invite)
+                .setMessage(R.string.group_invite_choice_message)
+                .setPositiveButton(R.string.group_invite_share_link, (dialog, which) -> ShareInvite(true))
+                .setNegativeButton(R.string.group_invite_share_code, (dialog, which) -> ShareInvite(false))
+                .setNeutralButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    // Shares the invite (any app: messages, mail ...): the link that opens the app, or only the code.
+    private void ShareInvite(boolean asLink)
     {
         Group group = GroupManager.GetCurrentGroup();
         if (group == null)
@@ -165,10 +179,12 @@ public class GroupActivity extends AppCompatActivity {
                 ShortToast.Show(this, R.string.group_action_failed);
                 return;
             }
+            String message = asLink
+                    ? getString(R.string.group_invite_link_message, group.Name, GroupManager.GetInviteLink(code))
+                    : getString(R.string.group_invite_code_message, group.Name, code);
             Intent share = new Intent(Intent.ACTION_SEND);
             share.setType("text/plain");
-            share.putExtra(Intent.EXTRA_TEXT, getString(R.string.group_invite_message, group.Name,
-                    GroupManager.GetInviteLink(code), code));
+            share.putExtra(Intent.EXTRA_TEXT, message);
             startActivity(Intent.createChooser(share, getString(R.string.group_invite)));
         });
     }
