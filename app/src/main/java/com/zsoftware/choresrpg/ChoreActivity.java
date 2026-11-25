@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -24,11 +26,11 @@ import com.zsoftware.choresrpg.cloud.Group;
 import com.zsoftware.choresrpg.cloud.GroupManager;
 import com.zsoftware.choresrpg.databinding.ActivityChoreBinding;
 import com.zsoftware.choresrpg.databinding.DialogEditDescriptionBinding;
+import com.zsoftware.choresrpg.schedule.ScheduleEditor;
+import com.zsoftware.choresrpg.schedule.ScheduleText;
 
 import java.text.DateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 // Shows all data of one chore. The description, icon and days have edit buttons; the chore can also be
 // marked as completed today (tap again to undo) or deleted, and its completions are listed (and can be
@@ -45,15 +47,6 @@ public class ChoreActivity extends AppCompatActivity {
             R.string.week_day_button_friday,
             R.string.week_day_button_saturday,
             R.string.week_day_button_sunday
-    };
-    private static final int[] FullDayNames = {
-            R.string.week_day_button_monday_full,
-            R.string.week_day_button_tuesday_full,
-            R.string.week_day_button_wednesday_full,
-            R.string.week_day_button_thursday_full,
-            R.string.week_day_button_friday_full,
-            R.string.week_day_button_saturday_full,
-            R.string.week_day_button_sunday_full
     };
 
     private ActivityChoreBinding binding;
@@ -146,27 +139,20 @@ public class ChoreActivity extends AppCompatActivity {
         binding.toolbarTitle.setText(chore.GetDescription());
         binding.choreIcon.setImageDrawable(GetIconCopy(chore));
 
+        // Weekly: a circle per weekday (filled on its days). Monthly: just the description.
+        ChoreSchedule schedule = chore.GetSchedule();
+        boolean weekly = schedule.GetRepeat() == ChoreSchedule.RepeatKind.Weekly;
         WeekDay[] weekDays = WeekDay.values();
-        List<String> scheduledDays = new ArrayList<>();
         binding.choreDays.removeAllViews();
-        for (int i = 0; i < weekDays.length; i++)
+        binding.choreDays.setVisibility(weekly ? View.VISIBLE : View.GONE);
+        for (int i = 0; weekly && i < weekDays.length; i++)
         {
-            boolean isScheduled = chore.IsOnDay(weekDays[i]);
-            if (isScheduled)
-                scheduledDays.add(getString(FullDayNames[i]));
-
             TextView day = (TextView) getLayoutInflater().inflate(R.layout.chore_week_day, binding.choreDays, false);
             day.setText(ShortDayNames[i]);
-            day.setSelected(isScheduled);
+            day.setSelected(chore.IsOnDay(weekDays[i]));
             binding.choreDays.addView(day);
         }
-
-        if (scheduledDays.isEmpty())
-            binding.choreDaysSummary.setText(R.string.chore_no_days);
-        else if (scheduledDays.size() == weekDays.length)
-            binding.choreDaysSummary.setText(R.string.chore_every_day);
-        else
-            binding.choreDaysSummary.setText(String.join(", ", scheduledDays));
+        binding.choreDaysSummary.setText(ScheduleText.Describe(this, schedule));
 
         Long lastCompleted = chore.GetLastCompleted();
         if (lastCompleted == null)
@@ -252,29 +238,23 @@ public class ChoreActivity extends AppCompatActivity {
         });
     }
 
+    // The schedule editor (weekly / monthly, every n) in a popup; Save applies it.
     private void ShowEditDaysDialog()
     {
-        WeekDay[] weekDays = WeekDay.values();
-        String[] dayNames = new String[weekDays.length];
-        boolean[] checked = new boolean[weekDays.length];
-        for (int i = 0; i < weekDays.length; i++)
-        {
-            dayNames[i] = getString(FullDayNames[i]);
-            checked[i] = CurrentChore.IsOnDay(weekDays[i]);
-        }
+        ScrollView scroll = new ScrollView(this);
+        LinearLayout container = new LinearLayout(this);
+        container.setOrientation(LinearLayout.VERTICAL);
+        int padding = getResources().getDimensionPixelSize(R.dimen.dialog_content_padding);
+        container.setPadding(padding, padding, padding, 0);
+        scroll.addView(container);
+        ScheduleEditor editor = new ScheduleEditor(this, getLayoutInflater(), container, CurrentChore.GetSchedule());
 
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.edit_days)
-                .setMultiChoiceItems(dayNames, checked, (dialog, which, isChecked) -> checked[which] = isChecked)
+                .setView(scroll)
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(R.string.save, (dialog, which) -> {
-                    List<WeekDay> selected = new ArrayList<>();
-                    for (int i = 0; i < weekDays.length; i++)
-                    {
-                        if (checked[i])
-                            selected.add(weekDays[i]);
-                    }
-                    CurrentChore.SetWeekDays(selected);
+                    CurrentChore.SetSchedule(editor.GetSchedule());
                     SaveChore();
                 })
                 .show();

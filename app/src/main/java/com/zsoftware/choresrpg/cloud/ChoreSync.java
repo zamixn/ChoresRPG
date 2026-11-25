@@ -13,6 +13,7 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 import com.zsoftware.choresrpg.Chore;
+import com.zsoftware.choresrpg.ChoreSchedule;
 import com.zsoftware.choresrpg.R;
 import com.zsoftware.choresrpg.SaveData;
 import com.zsoftware.choresrpg.ShortToast;
@@ -37,8 +38,8 @@ import java.util.Set;
 // (each chore knows its group); signed out, nothing is synced.
 //
 // GroupManager finds the user's groups and tells ChoreSync which ones to sync (SyncGroups).
-// Firestore layout: groups/{groupId}/chores/{choreId} with description, icon, weekDays, completions,
-// removedCompletions, updatedAt and deleted (deleted chores stay as markers so other devices delete them too).
+// Firestore layout: groups/{groupId}/chores/{choreId} with description, icon, weekDays, repeat,
+// repeatInterval, monthDays, startDate (the schedule), completions, removedCompletions, updatedAt and deleted (deleted chores stay as markers so other devices delete them too).
 public class ChoreSync {
     private static String LOGTAG = "ChoreSync";
 
@@ -278,6 +279,11 @@ public class ChoreSync {
         document.put("description", chore.GetDescription());
         document.put("icon", chore.GetIcon().name());
         document.put("weekDays", weekDays);
+        ChoreSchedule schedule = chore.GetSchedule();
+        document.put("repeat", schedule.GetRepeat().name());
+        document.put("repeatInterval", schedule.GetInterval());
+        document.put("monthDays", new ArrayList<>(schedule.GetMonthDays()));
+        document.put("startDate", schedule.GetStartDate());
         document.put("completions", new ArrayList<>(chore.GetCompletionHistory()));
         document.put("removedCompletions", new ArrayList<>(chore.GetRemovedCompletions()));
         document.put("updatedAt", chore.GetUpdatedAt());
@@ -307,6 +313,25 @@ public class ChoreSync {
                     AsTimes(document.get("removedCompletions")),
                     updated);
             chore.SetGroupId(groupId);
+            // Saved before monthly / every-n schedules existed: weekly, every week.
+            ChoreSchedule schedule = chore.GetSchedule();
+            String repeat = document.getString("repeat");
+            if (repeat != null)
+                schedule.SetRepeat(ChoreSchedule.RepeatKind.valueOf(repeat));
+            Long interval = document.getLong("repeatInterval");
+            if (interval != null)
+                schedule.SetInterval(interval.intValue());
+            List<Integer> monthDays = new ArrayList<>();
+            for (Object day : AsList(document.get("monthDays")))
+            {
+                if (day instanceof Number)
+                    monthDays.add(((Number) day).intValue());
+            }
+            schedule.SetMonthDays(monthDays);
+            Long startDate = document.getLong("startDate");
+            if (startDate != null)
+                schedule.SetStartDate(startDate.intValue());
+            chore.SetSchedule(schedule);
             return new ChoreSyncMerge.Remote(document.getId(), chore, false, updated);
         }
         catch (RuntimeException e)

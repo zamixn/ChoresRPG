@@ -12,11 +12,43 @@
     <string name="add_chore">Add a new chore</string>
     <string name="chore_description">Chore description</string>
     <string name="chore_description_hint">What needs doing?</string>
-    <string name="form_repeats_on">Repeats on</string>
+    <string name="form_repeats_on">Schedule</string>
     <string name="form_add_chore">Add chore</string>
     <string name="days_every_day">Every day</string>
     <string name="days_weekdays">Weekdays</string>
     <string name="days_weekend">Weekend</string>
+    <!-- Schedule editor (weekly / monthly, every n) and schedule summaries -->
+    <string name="schedule_repeats">Repeats</string>
+    <string name="schedule_on_date">On</string>
+    <string name="schedule_once">Once, on %1$s</string>
+    <string name="schedule_weekly">Weekly</string>
+    <string name="schedule_monthly">Monthly</string>
+    <string name="schedule_every">Every</string>
+    <string name="schedule_minus">−</string>
+    <string name="schedule_plus">+</string>
+    <string name="schedule_interval_decrease">More often</string>
+    <string name="schedule_interval_increase">Less often</string>
+    <plurals name="schedule_unit_weeks">
+        <item quantity="one">week</item>
+        <item quantity="other">weeks</item>
+    </plurals>
+    <plurals name="schedule_unit_months">
+        <item quantity="one">month</item>
+        <item quantity="other">months</item>
+    </plurals>
+    <string name="schedule_starting">Starting</string>
+    <string name="schedule_month_days_note">In shorter months, days 29–31 fall on the month\'s last day.</string>
+    <plurals name="schedule_every_n_weeks">
+        <item quantity="one">Every week on %2$s</item>
+        <item quantity="other">Every %1$d weeks on %2$s</item>
+    </plurals>
+    <string name="schedule_every_month">Every month on day %1$s</string>
+    <plurals name="schedule_every_n_months">
+        <item quantity="one">Every month on day %2$s</item>
+        <item quantity="other">Every %1$d months on day %2$s</item>
+    </plurals>
+    <string name="schedule_from">%1$s (from %2$s)</string>
+    <string name="schedule_list_separator">", "</string>
     <string name="save">Save</string>
     <string name="chore_saved">Chore Saved</string>
     <string name="chore_List_content_description">Chore Saved</string>
@@ -42,14 +74,14 @@
     <string name="weekly_view">Weekly view</string>
     <string name="daily_view">Daily view</string>
     <string name="no_chores_on_day">No chores on this day</string>
-    <string name="chore_days_label">Days</string>
+    <string name="chore_days_label">Repeats</string>
     <string name="chore_every_day">Every day</string>
     <string name="chore_no_days">No days scheduled</string>
     <string name="chore_last_completed_label">Last completed</string>
     <string name="chore_never_completed">Never</string>
     <string name="edit_icon">Edit icon</string>
     <string name="edit_description">Edit description</string>
-    <string name="edit_days">Edit days</string>
+    <string name="edit_days">Edit schedule</string>
     <string name="description_empty">The description can\'t be empty</string>
     <string name="complete_chore">Complete chore</string>
     <string name="chore_completed">Chore completed</string>

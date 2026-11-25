@@ -248,7 +248,7 @@ public class MonthActivity extends AppCompatActivity {
 
         for (Chore chore : chores)
         {
-            if (!chore.IsOnDay(weekDay))
+            if (!chore.IsOnDate(date))
                 continue;
             cell.dayChores.addView(CreateChoreRow(inflater, cell.dayChores, chore, chore.IsCompletedOn(date)));
         }

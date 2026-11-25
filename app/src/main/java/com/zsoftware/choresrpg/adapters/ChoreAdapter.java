@@ -41,7 +41,7 @@ public class ChoreAdapter extends BaseAdapter {
         this.context = context;
         this.Chores = new ArrayList();
         for (Chore c: chores) {
-            if(c.IsOnDay(weekDay))
+            if(c.IsOnDate(date))
                 Chores.add(c);
         }
 

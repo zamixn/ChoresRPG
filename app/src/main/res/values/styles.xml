@@ -47,6 +47,18 @@
         <item name="android:foreground">?attr/selectableItemBackgroundBorderless</item>
     </style>
 
+    <!-- The schedule editor's - / + buttons for "every n weeks / months". -->
+    <style name="ScheduleStepperButton" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:layout_width">@dimen/chore_view_edit_button_size</item>
+        <item name="android:layout_height">@dimen/chore_view_edit_button_size</item>
+        <item name="android:layout_marginStart">@dimen/form_label_spacing</item>
+        <item name="android:minWidth">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="android:textSize">@dimen/settings_title_text_size</item>
+    </style>
+
     <!-- A labelled section of the add-chore form. -->
     <style name="FormSectionLabel">
         <item name="android:layout_width">match_parent</item>

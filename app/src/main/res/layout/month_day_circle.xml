@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One day-of-the-month circle in the schedule editor's monthly grid (an equal share of a 7-wide row). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:paddingTop="@dimen/month_day_circle_spacing"
+    android:paddingBottom="@dimen/month_day_circle_spacing">
+
+    <TextView
+        android:id="@+id/day_circle"
+        style="@style/DayCirclePicker"
+        tools:text="15" />
+</FrameLayout>

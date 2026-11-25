@@ -13,6 +13,8 @@ import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
 import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.databinding.ActivityAddChoreBinding;
 
+import java.util.Calendar;
+
 // Shows the add-chore form (AddChoreFragment) for the month and day views. The week view shows the
 // same form inside MainActivity's navigation instead. Closes itself after the chore is saved.
 public class AddChoreActivity extends AppCompatActivity {
@@ -25,11 +27,12 @@ public class AddChoreActivity extends AppCompatActivity {
         return new Intent(context, AddChoreActivity.class);
     }
 
-    // With this weekday already selected in the form (day view).
-    public static Intent CreateIntent(Context context, WeekDay selectedDay)
+    // For a day (day view): that weekday already selected, and that date as the start / one-time date.
+    public static Intent CreateIntent(Context context, Calendar date)
     {
         Intent intent = CreateIntent(context);
-        intent.putExtra(AddChoreFragment.ArgSelectedDay, selectedDay.name());
+        intent.putExtra(AddChoreFragment.ArgSelectedDay, WeekDay.FromCalendar(date).name());
+        intent.putExtra(AddChoreFragment.ArgSelectedDate, date.getTimeInMillis());
         return intent;
     }
 

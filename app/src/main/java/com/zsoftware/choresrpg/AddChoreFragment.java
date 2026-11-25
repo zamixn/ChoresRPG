@@ -20,9 +20,10 @@ import com.zsoftware.choresrpg.cloud.Group;
 import com.zsoftware.choresrpg.cloud.GroupManager;
 import com.zsoftware.choresrpg.group.GroupDialogs;
 import com.zsoftware.choresrpg.databinding.FragmentAddChoreFragmentBinding;
-import com.zsoftware.choresrpg.databinding.FragmentChoreListBinding;
+import com.zsoftware.choresrpg.schedule.ScheduleEditor;
 
-import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,10 +35,14 @@ public class AddChoreFragment extends Fragment {
 
     // Optional argument: name of a WeekDay that starts out selected (set when adding from the day view).
     public static final String ArgSelectedDay = "SelectedDay";
+    // Optional argument: that day's date in milliseconds (day view): the one-time date / start date.
+    public static final String ArgSelectedDate = "SelectedDate";
 
     private FragmentAddChoreFragmentBinding binding;
     // The group the new chore goes into (null while signed out or before the groups are known).
     private String GroupId;
+    // When the chore repeats (weekly / monthly, every n).
+    private ScheduleEditor Schedule;
     private static final String StateGroupId = "GroupId";
 
     public AddChoreFragment() {
@@ -68,6 +73,8 @@ public class AddChoreFragment extends Fragment {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(StateGroupId, GroupId);
+        if (Schedule != null)
+            Schedule.SaveState(outState);
     }
 
     @Override
@@ -93,12 +100,20 @@ public class AddChoreFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Weekly by default; opened from the day view, with that weekday already picked.
+        ChoreSchedule schedule = new ChoreSchedule();
         Bundle args = getArguments();
-        if (savedInstanceState == null && args != null && args.getString(ArgSelectedDay) != null)
+        if (args != null && args.getString(ArgSelectedDay) != null)
+            schedule.SetWeekDays(Collections.singletonList(WeekDay.valueOf(args.getString(ArgSelectedDay))));
+        // That day is also the date of a one-time chore and where "every n" starts counting.
+        if (args != null && args.containsKey(ArgSelectedDate))
         {
-            WeekDay selectedDay = WeekDay.valueOf(args.getString(ArgSelectedDay));
-            ((WeekSelectorFragment)binding.weekDaysFragmentContainerView.getFragment()).SetInitialSelection(selectedDay);
+            Calendar date = AppClock.Now();
+            date.setTimeInMillis(args.getLong(ArgSelectedDate));
+            schedule.SetStartDate(date);
         }
+        Schedule = new ScheduleEditor(requireActivity(), getLayoutInflater(), binding.scheduleContainer, schedule);
+        Schedule.RestoreState(savedInstanceState);
 
         if (savedInstanceState != null)
             GroupId = savedInstanceState.getString(StateGroupId);
@@ -146,9 +161,8 @@ public class AddChoreFragment extends Fragment {
                     binding.choreDescription.requestFocus();
                     return;
                 }
-                List<WeekDay> weekdays = ((WeekSelectorFragment)binding.weekDaysFragmentContainerView.getFragment()).GetSelectedWeekDays();
                 ChoreIconEnum icon = ((ChoreIconSelectorFragment)binding.iconFragmentContainerView.getFragment()).ChoreIcon;
-                Chore c = new Chore(desc, weekdays, icon);
+                Chore c = new Chore(desc, Schedule.GetSchedule(), icon);
                 // Signed out (or groups not loaded yet): no group; it goes into the main group later.
                 c.SetGroupId(GroupId);
 

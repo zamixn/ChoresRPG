@@ -85,12 +85,11 @@ public class ChoreReminders {
     // Lines of the notification for a day: unfinished chores first, then the completed ones.
     public static List<String> BuildChoreLines(List<Chore> chores, Calendar day, String todoFormat, String doneFormat)
     {
-        WeekDay weekDay = WeekDay.FromCalendar(day);
         List<String> todo = new ArrayList<>();
         List<String> done = new ArrayList<>();
         for (Chore chore : chores)
         {
-            if (!chore.IsOnDay(weekDay))
+            if (!chore.IsOnDate(day))
                 continue;
             if (chore.IsCompletedOn(day))
                 done.add(String.format(doneFormat, chore.GetDescription()));
@@ -116,7 +115,7 @@ public class ChoreReminders {
         int doneCount = 0;
         for (Chore chore : chores)
         {
-            if (chore.IsOnDay(WeekDay.FromCalendar(today)) && chore.IsCompletedOn(today))
+            if (chore.IsOnDate(today) && chore.IsCompletedOn(today))
                 doneCount++;
         }
 

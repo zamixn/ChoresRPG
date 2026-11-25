@@ -146,7 +146,7 @@ public class DayActivity extends AppCompatActivity {
 
         ScreenSetup.ApplyFabInsets(binding.addChoreFab);
         binding.addChoreFab.setOnClickListener(view ->
-                startActivity(AddChoreActivity.CreateIntent(DayActivity.this, Day)));
+                startActivity(AddChoreActivity.CreateIntent(DayActivity.this, CurrentDate)));
 
         // Right after the first-time setup: explain the buttons (once; not again after a rotation).
         if (savedInstanceState == null && getIntent().getBooleanExtra(ExtraShowTutorial, false))

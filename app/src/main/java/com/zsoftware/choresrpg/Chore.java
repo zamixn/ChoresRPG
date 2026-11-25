@@ -17,10 +17,16 @@ public class Chore {
     private String Contents;
     public String GetDescription() { return Contents; }
     public void SetDescription(String description) { Contents = CleanDescription(description); }
-    private List<WeekDay> WeekDays;
-    public List<WeekDay> GetWeekDays() { return WeekDays; }
-    public void SetWeekDays(List<WeekDay> weekDays) { WeekDays = new ArrayList<>(weekDays); }
-    public Boolean IsOnDay(WeekDay day) { return WeekDays.contains(day); }
+    // When it repeats: on weekdays or days of the month, every n weeks / months (see ChoreSchedule).
+    private ChoreSchedule Schedule = new ChoreSchedule();
+    public ChoreSchedule GetSchedule() { return Schedule.Copy(); }
+    public void SetSchedule(ChoreSchedule schedule) { Schedule = schedule.Copy(); }
+    // The weekdays of a weekly schedule.
+    public List<WeekDay> GetWeekDays() { return Schedule.GetWeekDays(); }
+    public void SetWeekDays(List<WeekDay> weekDays) { Schedule.SetWeekDays(weekDays); }
+    public Boolean IsOnDay(WeekDay day) { return Schedule.GetRepeat() == ChoreSchedule.RepeatKind.Weekly && Schedule.GetWeekDays().contains(day); }
+    // True when the chore is due on that date.
+    public boolean IsOnDate(Calendar date) { return Schedule.IsOnDate(date); }
     private ChoreIconEnum Icon;
     public ChoreIconEnum GetIcon() { return Icon; }
     public void SetIcon(ChoreIconEnum icon) { Icon = icon; }
@@ -45,8 +51,9 @@ public class Chore {
     // A copy for another group, with a new id (the original stays in its group, maybe on other phones too).
     public Chore CopyToGroup(String groupId)
     {
-        Chore copy = FromCloud(UUID.randomUUID().toString(), Contents, Icon, WeekDays,
+        Chore copy = FromCloud(UUID.randomUUID().toString(), Contents, Icon, GetWeekDays(),
                 CompletionHistory, RemovedCompletions, 0);
+        copy.Schedule = Schedule.Copy();
         copy.GroupId = groupId;
         return copy;
     }
@@ -123,12 +130,17 @@ public class Chore {
     public Chore(String contents) {
         Id = UUID.randomUUID().toString();
         Contents = CleanDescription(contents);
-        WeekDays = new ArrayList<>();
     }
     public Chore(String contents, List<WeekDay> weekdays, ChoreIconEnum icon) {
         Id = UUID.randomUUID().toString();
         Contents = CleanDescription(contents);
-        WeekDays = new ArrayList(weekdays);
+        Schedule.SetWeekDays(weekdays);
+        Icon = icon;
+    }
+    public Chore(String contents, ChoreSchedule schedule, ChoreIconEnum icon) {
+        Id = UUID.randomUUID().toString();
+        Contents = CleanDescription(contents);
+        Schedule = schedule.Copy();
         Icon = icon;
     }
 
@@ -146,7 +158,7 @@ public class Chore {
     }
 
     // Combines two versions of the same chore (this phone's and the cloud's):
-    // - description, icon and days come from the version changed last;
+    // - description, icon and schedule come from the version changed last;
     // - completions from both are kept, except ones undone on either side.
     public static Chore Merge(Chore a, Chore b)
     {
@@ -156,8 +168,9 @@ public class Chore {
         TreeSet<Long> completions = new TreeSet<>(a.CompletionHistory);
         completions.addAll(b.CompletionHistory);
         completions.removeAll(removed);
-        Chore merged = FromCloud(newer.Id, newer.Contents, newer.Icon, newer.WeekDays,
+        Chore merged = FromCloud(newer.Id, newer.Contents, newer.Icon, newer.GetWeekDays(),
                 new ArrayList<>(completions), new ArrayList<>(removed), Math.max(a.UpdatedAt, b.UpdatedAt));
+        merged.Schedule = newer.Schedule.Copy();
         merged.GroupId = a.GroupId != null ? a.GroupId : b.GroupId;
         return merged;
     }
@@ -165,7 +178,9 @@ public class Chore {
     // True when both have the same data (ignoring when they were changed).
     public boolean HasSameContent(Chore other)
     {
-        return ContentString().equals(other.ContentString()) && String.valueOf(GroupId).equals(String.valueOf(other.GroupId));
+        return ContentString().equals(other.ContentString())
+                && String.valueOf(GroupId).equals(String.valueOf(other.GroupId))
+                && Schedule.ToSaveString().equals(other.Schedule.ToSaveString());
     }
 
     // '/' and ';' separate values in the save format, so they can't be stored in a description.
@@ -177,28 +192,33 @@ public class Chore {
     }
 
     // Save format: Description/Icon/<7 weekdays, "null" when not scheduled>/Id/LastCompleted/History/
-    // RemovedCompletions/UpdatedAt/GroupId
+    // RemovedCompletions/UpdatedAt/GroupId/Repeat/Interval/MonthDays/StartDate
     // History and RemovedCompletions are times separated by ',' ("null" when empty); GroupId is "null" when
-    // there's none. Older data stops earlier: before ids existed after the weekdays, before the history
-    // after LastCompleted, before syncing after the history, before groups after UpdatedAt.
+    // there's none; the last four are the rest of the schedule (ChoreSchedule.ToSaveString). Older data
+    // stops earlier: before ids existed after the weekdays, before the history after LastCompleted, before
+    // syncing after the history, before groups after UpdatedAt, before monthly / every-n schedules after
+    // GroupId (those are weekly, every week).
     private static final int IdIndex = 9;
     private static final int LastCompletedIndex = 10;
     private static final int HistoryIndex = 11;
     private static final int RemovedCompletionsIndex = 12;
     private static final int UpdatedAtIndex = 13;
     private static final int GroupIdIndex = 14;
+    private static final int ScheduleIndex = 15;
     public static Chore Parse(String s)
     {
         String[] parts = s.split("/");
         Chore c = new Chore(parts[0]);
         c.Icon = ChoreIconEnum.FromSavedName(parts[1]);
+        List<WeekDay> weekDays = new ArrayList<>();
         for (int i = 2; i < 9 && i < parts.length; i++)
         {
             String w = parts[i];
             if(w.compareTo("null") == 0)
                 continue;
-            c.WeekDays.add(WeekDay.valueOf(w));
+            weekDays.add(WeekDay.valueOf(w));
         }
+        c.Schedule.SetWeekDays(weekDays);
         if (parts.length > IdIndex && !parts[IdIndex].isEmpty())
             c.Id = parts[IdIndex];
         else
@@ -217,11 +237,12 @@ public class Chore {
             c.UpdatedAt = Long.parseLong(parts[UpdatedAtIndex]);
         if (parts.length > GroupIdIndex && !parts[GroupIdIndex].isEmpty() && parts[GroupIdIndex].compareTo("null") != 0)
             c.GroupId = parts[GroupIdIndex];
+        c.Schedule.ParseFrom(parts, ScheduleIndex);
         return c;
     }
     public String ToSaveDataString()
     {
-        return ContentString() + "/" + UpdatedAt + "/" + (GroupId == null ? "null" : GroupId);
+        return ContentString() + "/" + UpdatedAt + "/" + (GroupId == null ? "null" : GroupId) + "/" + Schedule.ToSaveString();
     }
 
     // Everything in the save format except UpdatedAt.
@@ -229,7 +250,7 @@ public class Chore {
     {
         String s = Contents + "/" + Icon.toString();
         for (WeekDay w : WeekDay.values()) {
-            if(WeekDays.contains(w))
+            if(Schedule.GetWeekDays().contains(w))
                 s += "/" + w.toString();
             else
                 s += "/null";
@@ -267,7 +288,7 @@ public class Chore {
         return "Chore{" +
                 "Id='" + Id + '\'' +
                 ", Contents='" + Contents + '\'' +
-                ", WeekDays=" + WeekDays +
+                ", Schedule=" + Schedule.ToSaveString() + " " + Schedule.GetWeekDays() +
                 ", Icon=" + Icon +
                 ", CompletionHistory=" + CompletionHistory +
                 ", RemovedCompletions=" + RemovedCompletions +

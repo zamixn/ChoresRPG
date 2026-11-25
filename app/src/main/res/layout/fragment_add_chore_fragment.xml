@@ -46,17 +46,17 @@
             </com.google.android.material.textfield.TextInputLayout>
         </LinearLayout>
 
-        <!-- Days -->
+        <!-- Schedule -->
         <TextView
             style="@style/FormSectionLabel"
             android:text="@string/form_repeats_on" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/weekDays_fragmentContainerView"
-            android:name="com.zsoftware.choresrpg.WeekSelectorFragment"
+        <!-- Filled in by schedule.ScheduleEditor (schedule_editor.xml) -->
+        <LinearLayout
+            android:id="@+id/schedule_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:layout="@layout/week_selector_fragment" />
+            android:orientation="vertical" />
 
         <!-- Which group the chore goes into (starts as the main group). Signed in only. -->
         <LinearLayout

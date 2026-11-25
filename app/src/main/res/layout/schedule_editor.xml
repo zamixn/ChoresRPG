@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Editing when a chore is due (schedule.ScheduleEditor), in the add-chore form and the chore view's edit
+     popup. "Repeats" on: Weekly | Monthly, the weekdays (with quick picks) or the days of the month, every
+     n weeks / months, and the start date that "every n" counts from. Off: the one date it's due on. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/repeats_switch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/form_label_spacing"
+        android:minHeight="@dimen/chore_view_edit_button_size"
+        android:text="@string/schedule_repeats"
+        android:textSize="@dimen/settings_title_text_size" />
+
+    <!-- Doesn't repeat: the date it's due on -->
+    <LinearLayout
+        android:id="@+id/once_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/schedule_on_date"
+            android:textSize="@dimen/settings_title_text_size" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/once_date_button"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/form_label_spacing"
+            tools:text="Wednesday, 25 Nov 2026" />
+    </LinearLayout>
+
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/repeat_toggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:selectionRequired="true"
+        app:singleSelection="true">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/repeat_weekly"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/schedule_weekly" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/repeat_monthly"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/schedule_monthly" />
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+
+    <!-- Weekly: a circle per weekday, then quick picks -->
+    <LinearLayout
+        android:id="@+id/weekly_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/form_label_spacing"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <FrameLayout style="@style/DayCircleSlot">
+                <TextView
+                    android:id="@+id/button_monday"
+                    style="@style/DayCirclePicker"
+                    android:text="@string/week_day_button_monday" />
+            </FrameLayout>
+
+            <FrameLayout style="@style/DayCircleSlot">
+                <TextView
+                    android:id="@+id/button_tuesday"
+                    style="@style/DayCirclePicker"
+                    android:text="@string/week_day_button_tuesday" />
+            </FrameLayout>
+
+            <FrameLayout style="@style/DayCircleSlot">
+                <TextView
+                    android:id="@+id/button_wednesday"
+                    style="@style/DayCirclePicker"
+                    android:text="@string/week_day_button_wednesday" />
+            </FrameLayout>
+
+            <FrameLayout style="@style/DayCircleSlot">
+                <TextView
+                    android:id="@+id/button_thursday"
+                    style="@style/DayCirclePicker"
+                    android:text="@string/week_day_button_thursday" />
+            </FrameLayout>
+
+            <FrameLayout style="@style/DayCircleSlot">
+                <TextView
+                    android:id="@+id/button_friday"
+                    style="@style/DayCirclePicker"
+                    android:text="@string/week_day_button_friday" />
+            </FrameLayout>
+
+            <FrameLayout style="@style/DayCircleSlot">
+                <TextView
+                    android:id="@+id/button_saturday"
+                    style="@style/DayCirclePicker"
+                    android:text="@string/week_day_button_saturday" />
+            </FrameLayout>
+
+            <FrameLayout style="@style/DayCircleSlot">
+                <TextView
+                    android:id="@+id/button_sunday"
+                    style="@style/DayCirclePicker"
+                    android:text="@string/week_day_button_sunday" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/every_day_button"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/days_every_day" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/weekdays_button"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/days_weekdays" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/weekend_button"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/days_weekend" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Monthly: a circle per day of the month (filled in by ScheduleEditor), 7 per row -->
+    <LinearLayout
+        android:id="@+id/monthly_section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/form_label_spacing"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <GridLayout
+            android:id="@+id/month_days_grid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="7" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/form_label_spacing"
+            android:alpha="0.7"
+            android:text="@string/schedule_month_days_note" />
+    </LinearLayout>
+
+    <!-- Every n weeks / months -->
+    <LinearLayout
+        android:id="@+id/interval_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/form_label_spacing"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/schedule_every"
+            android:textSize="@dimen/settings_title_text_size" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/interval_minus"
+            style="@style/ScheduleStepperButton"
+            android:contentDescription="@string/schedule_interval_decrease"
+            android:text="@string/schedule_minus" />
+
+        <TextView
+            android:id="@+id/interval_value"
+            android:layout_width="@dimen/schedule_interval_value_width"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="@dimen/settings_title_text_size"
+            android:textStyle="bold"
+            tools:text="2" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/interval_plus"
+            style="@style/ScheduleStepperButton"
+            android:contentDescription="@string/schedule_interval_increase"
+            android:text="@string/schedule_plus" />
+
+        <TextView
+            android:id="@+id/interval_unit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/form_label_spacing"
+            android:layout_weight="1"
+            android:textSize="@dimen/settings_title_text_size"
+            tools:text="weeks" />
+    </LinearLayout>
+
+    <!-- Start: only for every 2+ weeks / months -->
+    <LinearLayout
+        android:id="@+id/start_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/schedule_starting"
+            android:textSize="@dimen/settings_title_text_size" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/start_button"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/form_label_spacing"
+            tools:text="25 Nov 2026" />
+    </LinearLayout>
+</LinearLayout>

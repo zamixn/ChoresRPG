@@ -2,10 +2,13 @@
     <dimen name="fab_margin">16dp</dimen>
     <!-- Weekday circles (DayCircle style): the add-chore picker and the chore view -->
     <dimen name="day_circle_stroke">1.5dp</dimen>
-    <dimen name="day_circle_picker_size">42dp</dimen>
+    <dimen name="day_circle_picker_size">36dp</dimen>
     <dimen name="day_circle_view_margin">3dp</dimen>
     <dimen name="day_circle_view_text_size">13sp</dimen>
-    <dimen name="day_circle_picker_text_size">15sp</dimen>
+    <dimen name="day_circle_picker_text_size">14sp</dimen>
+    <!-- Schedule editor -->
+    <dimen name="month_day_circle_spacing">3dp</dimen>
+    <dimen name="schedule_interval_value_width">40dp</dimen>
     <!-- Add-chore form -->
     <dimen name="form_padding">16dp</dimen>
     <dimen name="form_section_spacing">24dp</dimen>
