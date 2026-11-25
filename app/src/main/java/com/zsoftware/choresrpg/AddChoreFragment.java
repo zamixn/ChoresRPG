@@ -1,6 +1,8 @@
 package com.zsoftware.choresrpg;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -79,7 +81,7 @@ public class AddChoreFragment extends Fragment {
     {
         Group group = GroupManager.GetGroup(GroupId);
         boolean show = AccountManager.IsSignedIn() && group != null;
-        binding.groupRow.setVisibility(show ? View.VISIBLE : View.GONE);
+        binding.groupSection.setVisibility(show ? View.VISIBLE : View.GONE);
         if (!show)
             return;
         binding.groupName.setText(group.Name);
@@ -118,13 +120,32 @@ public class AddChoreFragment extends Fragment {
             }
         };
         binding.groupRow.setOnClickListener(chooseGroup);
+        // Typing again clears the "can't be empty" error.
+        binding.choreDescription.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                binding.descriptionLayout.setError(null);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
         binding.changeGroupButton.setOnClickListener(chooseGroup);
 
         binding.addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                String desc = binding.choreDescription.getText().toString();
+                String desc = Chore.CleanDescription(String.valueOf(binding.choreDescription.getText()));
+                if (desc.isEmpty())
+                {
+                    binding.descriptionLayout.setError(getString(R.string.description_empty));
+                    binding.choreDescription.requestFocus();
+                    return;
+                }
                 List<WeekDay> weekdays = ((WeekSelectorFragment)binding.weekDaysFragmentContainerView.getFragment()).GetSelectedWeekDays();
                 ChoreIconEnum icon = ((ChoreIconSelectorFragment)binding.iconFragmentContainerView.getFragment()).ChoreIcon;
                 Chore c = new Chore(desc, weekdays, icon);

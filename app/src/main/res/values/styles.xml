@@ -22,6 +22,41 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <!-- A weekday circle (add-chore form, chore view); selected = filled. -->
+    <style name="DayCircle">
+        <item name="android:background">@drawable/day_circle</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/day_circle_text</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- The add-chore day picker: an equal share of the row, with a tappable circle in its middle. -->
+    <style name="DayCircleSlot">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+    </style>
+
+    <style name="DayCirclePicker" parent="DayCircle">
+        <item name="android:layout_width">@dimen/day_circle_picker_size</item>
+        <item name="android:layout_height">@dimen/day_circle_picker_size</item>
+        <item name="android:layout_gravity">center</item>
+        <item name="android:textSize">@dimen/day_circle_picker_text_size</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:foreground">?attr/selectableItemBackgroundBorderless</item>
+    </style>
+
+    <!-- A labelled section of the add-chore form. -->
+    <style name="FormSectionLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">@dimen/form_section_spacing</item>
+        <item name="android:layout_marginBottom">@dimen/form_label_spacing</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
     <style name="ChoreEditButton">
         <item name="android:layout_width">@dimen/chore_view_edit_button_size</item>
         <item name="android:layout_height">@dimen/chore_view_edit_button_size</item>

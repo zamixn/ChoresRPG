@@ -11,6 +11,12 @@
     <string name="first_fragment_label">first fragment</string>
     <string name="add_chore">Add a new chore</string>
     <string name="chore_description">Chore description</string>
+    <string name="chore_description_hint">What needs doing?</string>
+    <string name="form_repeats_on">Repeats on</string>
+    <string name="form_add_chore">Add chore</string>
+    <string name="days_every_day">Every day</string>
+    <string name="days_weekdays">Weekdays</string>
+    <string name="days_weekend">Weekend</string>
     <string name="save">Save</string>
     <string name="chore_saved">Chore Saved</string>
     <string name="chore_List_content_description">Chore Saved</string>

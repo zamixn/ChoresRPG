@@ -1,14 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- The add-chore form's icon (ChoreIconSelectorFragment): a rounded tile showing the chosen icon; tapping it
+     opens the icon picker. -->
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:id="@+id/icon_tile"
+    android:layout_width="@dimen/form_icon_tile_size"
+    android:layout_height="@dimen/form_icon_tile_size"
+    android:clickable="true"
+    android:contentDescription="@string/choose_icon"
+    android:focusable="true"
+    app:cardCornerRadius="@dimen/form_icon_tile_corner_radius"
+    app:cardElevation="0dp"
+    app:strokeColor="?attr/colorPrimary"
+    app:strokeWidth="@dimen/day_circle_stroke">
 
     <ImageView
         android:id="@+id/icon"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/chore_icon_cleaning_services"
-        />
-</FrameLayout>
+        android:layout_width="@dimen/form_icon_size"
+        android:layout_height="@dimen/form_icon_size"
+        android:layout_gravity="center"
+        android:importantForAccessibility="no"
+        android:src="@drawable/chore_icon_cleaning_services" />
+
+    <!-- Small pencil in the corner: the tile can be changed. -->
+    <ImageView
+        android:layout_width="@dimen/form_icon_edit_size"
+        android:layout_height="@dimen/form_icon_edit_size"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="@dimen/form_icon_edit_margin"
+        android:alpha="0.7"
+        android:importantForAccessibility="no"
+        app:srcCompat="@drawable/ic_edit"
+        app:tint="?attr/colorPrimary" />
+</com.google.android.material.card.MaterialCardView>

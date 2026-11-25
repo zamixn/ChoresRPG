@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- One weekday circle in the chore view's Days row; selected (filled) when the chore is on that day. -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    style="@style/DayCircle"
     android:layout_width="@dimen/chore_view_day_size"
     android:layout_height="@dimen/chore_view_day_size"
-    android:layout_margin="@dimen/chore_view_day_margin"
-    android:background="@drawable/round_button"
-    android:gravity="center"
+    android:layout_marginTop="@dimen/day_circle_view_margin"
+    android:layout_marginEnd="@dimen/day_circle_view_margin"
+    android:layout_marginBottom="@dimen/day_circle_view_margin"
+    android:textSize="@dimen/day_circle_view_text_size"
     tools:text="Mo" />

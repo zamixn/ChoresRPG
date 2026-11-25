@@ -157,7 +157,7 @@ public class ChoreActivity extends AppCompatActivity {
 
             TextView day = (TextView) getLayoutInflater().inflate(R.layout.chore_week_day, binding.choreDays, false);
             day.setText(ShortDayNames[i]);
-            day.setBackgroundResource(isScheduled ? R.drawable.round_button_selected : R.drawable.round_button);
+            day.setSelected(isScheduled);
             binding.choreDays.addView(day);
         }
 

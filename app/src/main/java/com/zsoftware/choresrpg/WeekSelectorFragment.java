@@ -1,93 +1,102 @@
 package com.zsoftware.choresrpg;
 
-import android.content.Context;
-import android.graphics.Color;
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.fragment.NavHostFragment;
 
 import com.zsoftware.choresrpg.databinding.WeekSelectorFragmentBinding;
 
 import java.util.ArrayList;
-import java.util.Dictionary;
-import java.util.Hashtable;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
+// The add-chore form's weekday picker: a circle per day (tap to select / unselect; selected circles are
+// filled), and quick picks for every day, weekdays (Monday - Friday) and the weekend.
 public class WeekSelectorFragment extends Fragment {
+
+    private static final String StateSelectedDays = "SelectedDays";
 
     private WeekSelectorFragmentBinding binding;
 
-    private List<WeekDay> SelectedWeekDays;
-    private Dictionary<WeekDay, Button> WeekDayButtons;
+    private final List<WeekDay> SelectedWeekDays = new ArrayList<>();
+    private final Map<WeekDay, TextView> WeekDayButtons = new EnumMap<>(WeekDay.class);
 
     @Override
     public View onCreateView(
             LayoutInflater inflater, ViewGroup container,
             Bundle savedInstanceState
     ) {
-        SelectedWeekDays = new ArrayList<>();
-        WeekDayButtons = new Hashtable<>();
         binding = WeekSelectorFragmentBinding.inflate(inflater, container, false);
         return binding.getRoot();
-
     }
 
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Log.e("TAG", "weekDay.toString()");
 
         WeekDayButtons.put(WeekDay.Monday, binding.buttonMonday);
-        binding.buttonMonday.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { SelectDay(WeekDay.Monday); }
-        });
         WeekDayButtons.put(WeekDay.Tuesday, binding.buttonTuesday);
-        binding.buttonTuesday.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { SelectDay(WeekDay.Tuesday); }
-        });
         WeekDayButtons.put(WeekDay.Wednesday, binding.buttonWednesday);
-        binding.buttonWednesday.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { SelectDay(WeekDay.Wednesday); }
-        });
         WeekDayButtons.put(WeekDay.Thursday, binding.buttonThursday);
-        binding.buttonThursday.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { SelectDay(WeekDay.Thursday); }
-        });
         WeekDayButtons.put(WeekDay.Friday, binding.buttonFriday);
-        binding.buttonFriday.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { SelectDay(WeekDay.Friday); }
-        });
         WeekDayButtons.put(WeekDay.Saturday, binding.buttonSaturday);
-        binding.buttonSaturday.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { SelectDay(WeekDay.Saturday); }
-        });
         WeekDayButtons.put(WeekDay.Sunday, binding.buttonSunday);
-        binding.buttonSunday.setOnClickListener(new View.OnClickListener() {
+        for (Map.Entry<WeekDay, TextView> entry : WeekDayButtons.entrySet())
+        {
+            WeekDay day = entry.getKey();
+            entry.getValue().setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) { ToggleDay(day); }
+            });
+        }
+
+        binding.everyDayButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) { SelectDay(WeekDay.Sunday); }
+            public void onClick(View view) { SetSelection(Arrays.asList(WeekDay.values())); }
+        });
+        binding.weekdaysButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SetSelection(Arrays.asList(WeekDay.Monday, WeekDay.Tuesday, WeekDay.Wednesday, WeekDay.Thursday, WeekDay.Friday));
+            }
+        });
+        binding.weekendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) { SetSelection(Arrays.asList(WeekDay.Saturday, WeekDay.Sunday)); }
         });
 
-        if (PendingInitialSelection != null)
+        // After a rotation: the days picked before it.
+        if (savedInstanceState != null && savedInstanceState.getStringArrayList(StateSelectedDays) != null)
         {
-            SelectDay(PendingInitialSelection);
+            List<WeekDay> restored = new ArrayList<>();
+            for (String day : savedInstanceState.getStringArrayList(StateSelectedDays))
+                restored.add(WeekDay.valueOf(day));
+            SetSelection(restored);
             PendingInitialSelection = null;
         }
+        else if (PendingInitialSelection != null)
+        {
+            SetSelection(Collections.singletonList(PendingInitialSelection));
+            PendingInitialSelection = null;
+        }
+        else
+            ShowSelection();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        ArrayList<String> days = new ArrayList<>();
+        for (WeekDay day : SelectedWeekDays)
+            days.add(day.name());
+        outState.putStringArrayList(StateSelectedDays, days);
     }
 
     // Selects a day when the selector first shows. Works before or after this fragment's view exists
@@ -95,33 +104,43 @@ public class WeekSelectorFragment extends Fragment {
     private WeekDay PendingInitialSelection;
     public void SetInitialSelection(WeekDay weekDay)
     {
-        if (WeekDayButtons != null && WeekDayButtons.get(weekDay) != null)
+        if (binding != null)
         {
             if (!SelectedWeekDays.contains(weekDay))
-                SelectDay(weekDay);
+                ToggleDay(weekDay);
         }
         else
             PendingInitialSelection = weekDay;
     }
 
-    private void SelectDay(WeekDay weekDay)
+    private void ToggleDay(WeekDay weekDay)
     {
-        Button b = WeekDayButtons.get(weekDay);
-        if(!SelectedWeekDays.contains(weekDay))
-        {
-            SelectedWeekDays.add(weekDay);
-            b.setBackground(getResources().getDrawable(R.drawable.round_button_selected));
-        }
-        else
-        {
+        if (SelectedWeekDays.contains(weekDay))
             SelectedWeekDays.remove(weekDay);
-            b.setBackground(getResources().getDrawable(R.drawable.round_button));
-        }
+        else
+            SelectedWeekDays.add(weekDay);
+        ShowSelection();
     }
 
+    private void SetSelection(List<WeekDay> days)
+    {
+        SelectedWeekDays.clear();
+        SelectedWeekDays.addAll(days);
+        ShowSelection();
+    }
+
+    private void ShowSelection()
+    {
+        for (Map.Entry<WeekDay, TextView> entry : WeekDayButtons.entrySet())
+            entry.getValue().setSelected(SelectedWeekDays.contains(entry.getKey()));
+    }
+
+    // The selected days, in week order.
     public List<WeekDay> GetSelectedWeekDays()
     {
-        return SelectedWeekDays;
+        List<WeekDay> days = new ArrayList<>(SelectedWeekDays);
+        Collections.sort(days);
+        return days;
     }
 
     @Override

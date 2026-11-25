@@ -45,10 +45,22 @@ public class ChoreIconSelectorFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 
+        // After a rotation: the icon picked before it.
         ChoreIcon = ChoreIconEnum.CleaningServices;
+        if (savedInstanceState != null && savedInstanceState.getString(StateIcon) != null)
+            ChoreIcon = ChoreIconEnum.FromSavedName(savedInstanceState.getString(StateIcon));
         binding.icon.setImageDrawable(ChoreIconDictionary.Instance().GetIcon(ChoreIcon));
-        binding.icon.setOnClickListener(view1 -> ShowSelectIconDialog());
+        binding.iconTile.setOnClickListener(view1 -> ShowSelectIconDialog());
         super.onViewCreated(view, savedInstanceState);
+    }
+
+    private static final String StateIcon = "Icon";
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (ChoreIcon != null)
+            outState.putString(StateIcon, ChoreIcon.name());
     }
 
     private void ShowSelectIconDialog()

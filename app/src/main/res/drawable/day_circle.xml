@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A weekday circle (add-chore form, chore view): filled with the primary color when the day is selected
+     (View.setSelected), an outlined ring otherwise. Text color: color/day_circle_text. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <shape android:shape="oval">
+            <solid android:color="?attr/colorPrimary" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <stroke
+                android:width="@dimen/day_circle_stroke"
+                android:color="?attr/colorPrimary" />
+        </shape>
+    </item>
+</selector>
