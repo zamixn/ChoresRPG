@@ -49,6 +49,13 @@ public class AppSettings {
     public int GetEveningTime() { return SharedPreferences.getInt(EveningTimeKey, DefaultEveningTime); }
     public void SetEveningTime(int minutes) { Save(SharedPreferences.edit().putInt(EveningTimeKey, minutes)); }
 
+    // Name of the group the user was removed from, shown once as a notice ("" = no notice).
+    private static final String RemovedFromGroupKey = "RemovedFromGroup";
+    public String GetRemovedFromGroup() { return SharedPreferences.getString(RemovedFromGroupKey, ""); }
+    public void SetRemovedFromGroup(String groupName) { Save(SharedPreferences.edit().putString(RemovedFromGroupKey, groupName)); }
+    public boolean WasRemovedFromGroup() { return SharedPreferences.contains(RemovedFromGroupKey); }
+    public void ClearRemovedFromGroup() { Save(SharedPreferences.edit().remove(RemovedFromGroupKey)); }
+
     // The first-time setup (FTUE) was finished; until then it opens when the app starts.
     private static final String FtueCompletedKey = "FtueCompleted";
     public boolean IsFtueCompleted() { return SharedPreferences.getBoolean(FtueCompletedKey, false); }

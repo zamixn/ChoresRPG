@@ -186,6 +186,7 @@ public class ChoreListFragment extends Fragment {
         super.onResume();
         UpdateChoreListViews();
         ChoreSync.AddListener(CloudChoresChanged);
+        ScreenSetup.ShowRemovedFromGroupNotice(requireActivity());
     }
 
     @Override

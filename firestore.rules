@@ -1,11 +1,83 @@
 rules_version = '2';
 
-// ChoresRPG: each signed-in user can read and write only their own data (users/{userId}/...).
-// Everything else is closed. Publish in the Firebase console: Firestore Database -> Rules.
+// ChoresRPG security rules. Publish in the Firebase console (Firestore Database -> Rules) or with
+// `firebase deploy --only firestore:rules`.
+//
+//   users/{userId}              the user's own record (which group they're in); only they can use it
+//   groups/{groupId}            name, ownerId, members, memberNames, inviteCode
+//   groups/{groupId}/chores/*   the group's chores; any member can read and write them
+//   invites/{code}              looked up by invite links: anyone signed in who knows the code can read it
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function me() {
+      return request.auth.uid;
+    }
+
+    function isMemberOf(groupId) {
+      return signedIn()
+        && me() in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+    }
+
+    // The user's own record (and chores saved before groups existed, so they can be cleaned up).
     match /users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read, write: if signedIn() && me() == userId;
+    }
+
+    match /groups/{groupId} {
+      function changedKeys() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+
+      // The creator may change anything, as long as the group still has a creator who is a member
+      // (removing members, renaming, handing over the creator role when leaving).
+      function creatorUpdate() {
+        return resource.data.ownerId == me()
+          && request.resource.data.ownerId in request.resource.data.members;
+      }
+
+      // Any member may rename the group or add its invite code.
+      function memberEdit() {
+        return me() in resource.data.members
+          && changedKeys().hasOnly(['name', 'inviteCode']);
+      }
+
+      // A member (not the creator) leaving: only themselves taken out.
+      function leaving() {
+        return me() in resource.data.members
+          && changedKeys().hasOnly(['members', 'memberNames'])
+          && request.resource.data.members.toSet() == resource.data.members.toSet().difference([me()].toSet());
+      }
+
+      // Joining through an invite: only themselves added, with a valid invite code for this group.
+      function joining() {
+        return !(me() in resource.data.members)
+          && changedKeys().hasOnly(['members', 'memberNames', 'joinCode'])
+          && request.resource.data.members.toSet() == resource.data.members.toSet().union([me()].toSet())
+          && get(/databases/$(database)/documents/invites/$(request.resource.data.joinCode)).data.groupId == groupId;
+      }
+
+      allow get: if signedIn() && me() in resource.data.members;
+      allow create: if signedIn()
+        && request.resource.data.ownerId == me()
+        && request.resource.data.members == [me()];
+      allow update: if signedIn() && (creatorUpdate() || memberEdit() || leaving() || joining());
+      // Only when the last member leaves.
+      allow delete: if signedIn() && resource.data.members == [me()];
+
+      match /chores/{choreId} {
+        allow read, write: if isMemberOf(groupId);
+      }
+    }
+
+    match /invites/{code} {
+      allow get: if signedIn();
+      allow create, update: if isMemberOf(request.resource.data.groupId);
+      allow delete: if isMemberOf(resource.data.groupId);
     }
   }
 }

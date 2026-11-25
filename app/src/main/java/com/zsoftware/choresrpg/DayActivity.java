@@ -159,6 +159,7 @@ public class DayActivity extends AppCompatActivity {
         super.onResume();
         ShowChores();
         ChoreSync.AddListener(CloudChoresChanged);
+        ScreenSetup.ShowRemovedFromGroupNotice(this);
     }
 
     @Override

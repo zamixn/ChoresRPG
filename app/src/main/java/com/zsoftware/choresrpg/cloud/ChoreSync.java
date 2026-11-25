@@ -30,7 +30,8 @@ import java.util.Map;
 //   the open screen is told to refresh.
 // The phone's chore list (SaveData) stays the app's working copy; signed out, nothing is synced.
 //
-// Firestore layout: users/{userId}/chores/{choreId} with description, icon, weekDays, completions,
+// Chores belong to the user's group (GroupManager), so everyone in it shares them.
+// Firestore layout: groups/{groupId}/chores/{choreId} with description, icon, weekDays, completions,
 // removedCompletions, updatedAt and deleted (deleted chores stay as markers so other devices delete them too).
 public class ChoreSync {
     private static String LOGTAG = "ChoreSync";
@@ -45,12 +46,13 @@ public class ChoreSync {
     public static void RemoveListener(OnChoresChanged listener) { Listeners.remove(listener); }
 
     private static ListenerRegistration Registration;
-    private static String ListeningUserId;
+    // The group whose chores are synced (GroupManager); null while not syncing.
+    private static String ListeningGroupId;
     // For the "couldn't sync" toast.
     private static Context AppContext;
 
-    // Starts syncing for the signed-in user (stops when signed out). Safe to call from every screen;
-    // SaveData must be initialized first.
+    // Starts syncing the chores of the signed-in user's group (stops when signed out). Safe to call from
+    // every screen; SaveData must be initialized first. The group is looked up (or created) first.
     public static void Start(Context context)
     {
         AppContext = context.getApplicationContext();
@@ -61,45 +63,61 @@ public class ChoreSync {
             }
         });
 
-        String userId = AccountManager.GetUserId();
-        if (userId == null)
+        if (AccountManager.GetUserId() == null)
         {
             Stop();
             return;
         }
-        if (userId.equals(ListeningUserId) && Registration != null)
+        GroupManager.Resolve(AppContext, ChoreSync::ListenTo);
+    }
+
+    private static void ListenTo(String groupId)
+    {
+        if (groupId.equals(ListeningGroupId) && Registration != null)
             return;
 
         Stop();
-        ListeningUserId = userId;
-        // The first result has everything in the cloud; that's also when a first sign-in uploads the
-        // phone's chores.
-        Registration = GetChores(userId).addSnapshotListener((snapshot, error) -> {
+        ListeningGroupId = groupId;
+        // The first result has everything in the cloud; that's also when the phone's chores are uploaded
+        // into a new group.
+        Registration = GetChores(groupId).addSnapshotListener((snapshot, error) -> {
             if (error != null)
             {
-                // Firestore stops the listener after an error (e.g. PERMISSION_DENIED before the security
-                // rules are published). Forget it, so the next screen that opens starts listening again.
-                ReportFailure("Start: listening for cloud changes failed", error);
+                // Firestore stops the listener after an error. Forget it, so the next screen that opens starts
+                // again. PERMISSION_DENIED usually means the user was just removed from the group: look the
+                // group up again (GroupManager notices and moves them to a new one) instead of a toast.
                 Stop();
+                boolean refused = error.getCode() == FirebaseFirestoreException.Code.PERMISSION_DENIED;
+                if (refused && !RetriedAfterRefusal)
+                {
+                    RetriedAfterRefusal = true;
+                    GroupManager.Clear();
+                    Start(AppContext);
+                    return;
+                }
+                ReportFailure("ListenTo: listening for cloud changes failed", error);
                 return;
             }
+            RetriedAfterRefusal = false;
             if (snapshot != null)
                 OnCloudChores(snapshot);
         });
     }
+    private static boolean RetriedAfterRefusal = false;
 
-    // Stops listening for cloud changes (after signing out). The phone keeps its chores.
+    // Stops listening for cloud changes (after signing out, or before moving to another group). The phone
+    // keeps its chores.
     public static void Stop()
     {
         if (Registration != null)
             Registration.remove();
         Registration = null;
-        ListeningUserId = null;
+        ListeningGroupId = null;
     }
 
-    private static CollectionReference GetChores(String userId)
+    private static CollectionReference GetChores(String groupId)
     {
-        return FirebaseFirestore.getInstance().collection("users").document(userId).collection("chores");
+        return FirebaseFirestore.getInstance().collection("groups").document(groupId).collection("chores");
     }
 
     // Writes a chore document. Offline, Firestore queues it (that's not a failure); the toast is only
@@ -126,14 +144,15 @@ public class ChoreSync {
         ShortToast.Show(AppContext, refused ? R.string.sync_refused : R.string.sync_failed);
     }
 
-    // Sends chores changed or deleted on this phone. Signed out, deletions wait in SaveData's pending list.
+    // Sends chores changed or deleted on this phone. Signed out (or while the group is being looked up),
+    // deletions wait in SaveData's pending list and changes go up with the next sync.
     private static void Upload(List<Chore> changedChores, List<String> deletedChoreIds)
     {
-        String userId = AccountManager.GetUserId();
+        String groupId = ListeningGroupId;
         SaveData saveData = SaveData.Instance();
-        if (userId == null || saveData == null)
+        if (groupId == null || AccountManager.GetUserId() == null || saveData == null)
             return;
-        CollectionReference chores = GetChores(userId);
+        CollectionReference chores = GetChores(groupId);
         for (Chore chore : changedChores)
             Write(chores.document(chore.GetId()), ToDocument(chore), false);
 
@@ -159,8 +178,8 @@ public class ChoreSync {
     private static void OnCloudChores(QuerySnapshot snapshot)
     {
         SaveData saveData = SaveData.Instance();
-        String userId = AccountManager.GetUserId();
-        if (saveData == null || userId == null)
+        String groupId = ListeningGroupId;
+        if (saveData == null || groupId == null || AccountManager.GetUserId() == null)
             return;
 
         List<ChoreSyncMerge.Remote> remote = new ArrayList<>();
@@ -181,7 +200,7 @@ public class ChoreSync {
                 listener.ChoresChanged();
         }
 
-        CollectionReference chores = GetChores(userId);
+        CollectionReference chores = GetChores(groupId);
         for (Chore chore : result.ToUpload)
             Write(chores.document(chore.GetId()), ToDocument(chore), false);
         for (Map.Entry<String, Long> delete : result.DeletesToUpload.entrySet())

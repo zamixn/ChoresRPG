@@ -19,21 +19,13 @@ import androidx.credentials.exceptions.GetCredentialCancellationException;
 import androidx.credentials.exceptions.GetCredentialException;
 import androidx.credentials.exceptions.NoCredentialException;
 
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption;
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.WriteBatch;
 import com.zsoftware.choresrpg.R;
-
-import java.util.ArrayList;
-import java.util.List;
 
 // The user's account: "Sign in with Google" (Android's Credential Manager) linked to Firebase
 // Authentication. Signing in is optional; the app works the same without an account.
@@ -204,8 +196,8 @@ public class AccountManager {
     // Firebase only deletes an account that signed in within the last few minutes.
     private static final long RecentSignInMillis = 4 * 60 * 1000;
 
-    // Deletes the signed-in account: first every chore saved in the cloud, then the Firebase account,
-    // then signs out. Doesn't touch the chores on the phone. If the last sign-in isn't recent, Google's
+    // Deletes the signed-in account: first the user's cloud data (see DeleteDataAndUser), then the Firebase
+    // account, then signs out. Doesn't touch the chores on the phone. If the last sign-in isn't recent, Google's
     // account picker is shown once more to confirm who is deleting. Stop ChoreSync before calling.
     public static void DeleteAccount(Activity activity, OnDeleteFinished onFinished)
     {
@@ -246,12 +238,14 @@ public class AccountManager {
         });
     }
 
+    // The user's data: leaves their group (deleting it with its chores when they're its last member,
+    // otherwise the chores stay with the others), then their user record; then the account itself.
     private static void DeleteDataAndUser(Activity activity, FirebaseUser user, OnDeleteFinished onFinished)
     {
-        DeleteCloudChores(user.getUid()).addOnCompleteListener(dataTask -> {
+        GroupManager.DeleteUserData(user.getUid()).addOnCompleteListener(dataTask -> {
             if (!dataTask.isSuccessful())
             {
-                Log.e(LOGTAG, "DeleteDataAndUser: couldn't delete the cloud chores", dataTask.getException());
+                Log.e(LOGTAG, "DeleteDataAndUser: couldn't delete the cloud data", dataTask.getException());
                 onFinished.DeleteFinished(DeleteResult.Failed);
                 return;
             }
@@ -263,34 +257,9 @@ public class AccountManager {
                     return;
                 }
                 FirebaseAuth.getInstance().signOut();
+                GroupManager.Clear();
                 ClearRememberedAccount(activity, () -> onFinished.DeleteFinished(DeleteResult.Deleted));
             });
         });
-    }
-
-    // Deletes every document under users/{userId}/chores (Firestore can't delete a whole collection from
-    // the app, so documents go in batches of up to 500).
-    private static Task<Void> DeleteCloudChores(String userId)
-    {
-        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-        return firestore.collection("users").document(userId).collection("chores").get()
-                .continueWithTask(task -> {
-                    List<Task<Void>> commits = new ArrayList<>();
-                    WriteBatch batch = firestore.batch();
-                    int inBatch = 0;
-                    for (DocumentSnapshot document : task.getResult().getDocuments())
-                    {
-                        batch.delete(document.getReference());
-                        if (++inBatch == 500)
-                        {
-                            commits.add(batch.commit());
-                            batch = firestore.batch();
-                            inBatch = 0;
-                        }
-                    }
-                    if (inBatch > 0)
-                        commits.add(batch.commit());
-                    return Tasks.whenAll(commits);
-                });
     }
 }

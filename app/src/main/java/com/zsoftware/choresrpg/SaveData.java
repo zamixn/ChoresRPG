@@ -265,4 +265,10 @@ public class SaveData {
         WriteChoreList(new ArrayList<>());
         WritePendingDeletes(new HashMap<>());
     }
+
+    // Forgets deletions not yet sent to the cloud (when moving to another group: they were for the old one).
+    public void ClearPendingDeletes()
+    {
+        WritePendingDeletes(new HashMap<>());
+    }
 }

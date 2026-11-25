@@ -16,7 +16,9 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.zsoftware.choresrpg.databinding.PeriodNavigatorBinding;
 import com.zsoftware.choresrpg.ftue.FtueActivity;
+import com.zsoftware.choresrpg.settings.AppSettings;
 import com.zsoftware.choresrpg.settings.SettingsActivity;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.zsoftware.choresrpg.reminders.ChoreReminders;
 
 import java.text.DateFormat;
@@ -125,6 +127,25 @@ public class ScreenSetup {
         from.startActivity(new Intent(from, MonthActivity.class));
         if (!(from instanceof MainActivity))
             from.finish();
+    }
+
+    // If the group's creator removed this user from it (noticed when the app looked up the group), tells
+    // them once with a popup. Called when the main views and the group screen show.
+    public static void ShowRemovedFromGroupNotice(Activity activity)
+    {
+        AppSettings.Initialize(activity);
+        AppSettings settings = AppSettings.Instance();
+        if (!settings.WasRemovedFromGroup() || activity.isFinishing())
+            return;
+        String groupName = settings.GetRemovedFromGroup();
+        settings.ClearRemovedFromGroup();
+        new MaterialAlertDialogBuilder(activity)
+                .setTitle(R.string.group_removed_title)
+                .setMessage(groupName.isEmpty()
+                        ? activity.getString(R.string.group_removed_message_unnamed)
+                        : activity.getString(R.string.group_removed_message, groupName))
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
     }
 
     // Debug option "show first-time setup": opens the FTUE again. Returns true when the item was this one.

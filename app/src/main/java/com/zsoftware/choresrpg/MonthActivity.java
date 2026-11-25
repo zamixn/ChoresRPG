@@ -116,6 +116,7 @@ public class MonthActivity extends AppCompatActivity {
         super.onResume();
         BuildCalendar();
         ChoreSync.AddListener(CloudChoresChanged);
+        ScreenSetup.ShowRemovedFromGroupNotice(this);
     }
 
     @Override

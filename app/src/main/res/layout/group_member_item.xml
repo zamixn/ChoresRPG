@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One member in the group screen: name, "Creator" label, and (for the creator) a remove button. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/chore_view_edit_button_size"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/member_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textSize="@dimen/settings_title_text_size"
+        tools:text="Žygimantas (you)" />
+
+    <TextView
+        android:id="@+id/member_role"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/settings_padding"
+        android:text="@string/group_creator_label"
+        android:textColor="?attr/colorPrimary"
+        android:textStyle="bold"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <ImageButton
+        android:id="@+id/remove_button"
+        android:layout_width="@dimen/chore_view_edit_button_size"
+        android:layout_height="@dimen/chore_view_edit_button_size"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:visibility="gone"
+        app:srcCompat="@drawable/ic_delete"
+        app:tint="@color/delete_red"
+        android:contentDescription="@string/group_remove_member"
+        tools:visibility="visible" />
+</LinearLayout>

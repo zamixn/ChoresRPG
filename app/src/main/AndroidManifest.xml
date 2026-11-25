@@ -64,6 +64,27 @@
             android:exported="false"
             android:label="@string/app_name"
             android:theme="@style/Theme.ChoresRPG.NoActionBar" />
+        <activity
+            android:name=".group.GroupActivity"
+            android:exported="false"
+            android:label="@string/group_title"
+            android:theme="@style/Theme.ChoresRPG.NoActionBar" />
+        <!-- Opened by group invite links, and by "Join with a code" in the group screen. -->
+        <activity
+            android:name=".group.JoinGroupActivity"
+            android:exported="true"
+            android:label="@string/group_join"
+            android:theme="@style/Theme.ChoresRPG.NoActionBar">
+            <!-- choresrpg://join/CODE -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="join"
+                    android:scheme="choresrpg" />
+            </intent-filter>
+        </activity>
 
         <receiver
             android:name=".reminders.ReminderAlarmReceiver"

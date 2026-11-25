@@ -19,6 +19,9 @@ import com.zsoftware.choresrpg.ScreenSetup;
 import com.zsoftware.choresrpg.ShortToast;
 import com.zsoftware.choresrpg.cloud.AccountManager;
 import com.zsoftware.choresrpg.cloud.ChoreSync;
+import com.zsoftware.choresrpg.cloud.Group;
+import com.zsoftware.choresrpg.cloud.GroupManager;
+import com.zsoftware.choresrpg.group.GroupActivity;
 import com.zsoftware.choresrpg.databinding.ActivitySettingsBinding;
 
 // Settings: the account (sign in with Google), daily chore notifications on/off and the morning /
@@ -47,6 +50,8 @@ public class SettingsActivity extends AppCompatActivity {
         binding.testNotificationButton.setOnClickListener(view -> Notifications.SendTestNotification());
         binding.accountButton.setOnClickListener(view -> OnAccountButton());
         binding.deleteAccountButton.setOnClickListener(view -> OnDeleteAccountButton());
+        binding.groupRow.setOnClickListener(view -> OpenGroup());
+        binding.groupButton.setOnClickListener(view -> OpenGroup());
     }
 
     // Signed out: "Not signed in" + Sign in with Google. Signed in: the account + Sign out, and Delete account.
@@ -60,6 +65,27 @@ public class SettingsActivity extends AppCompatActivity {
         binding.accountButton.setText(signedIn ? R.string.settings_sign_out : R.string.settings_sign_in);
         binding.deleteAccountButton.setVisibility(signedIn ? View.VISIBLE : View.GONE);
         SetAccountButtonsEnabled(true);
+        ShowGroupRow();
+    }
+
+    // Groups need a Google account: signed out, a toast says so instead of opening the group screen.
+    private void OpenGroup()
+    {
+        if (!AccountManager.IsSignedIn())
+        {
+            ShortToast.Show(this, R.string.group_sign_in_needed);
+            return;
+        }
+        startActivity(GroupActivity.CreateIntent(this));
+    }
+
+    private void ShowGroupRow()
+    {
+        Group group = GroupManager.GetCurrentGroup();
+        if (!AccountManager.IsSignedIn())
+            binding.groupSummary.setText(R.string.settings_group_signed_out);
+        else
+            binding.groupSummary.setText(group == null ? getString(R.string.group_loading) : group.Name);
     }
 
     // Off while Google's picker or Firebase is working, so nothing is started twice.
@@ -114,6 +140,7 @@ public class SettingsActivity extends AppCompatActivity {
         SetAccountButtonsEnabled(false);
         // Stop syncing first, so removing the phone's chores isn't sent to the cloud as deletions.
         ChoreSync.Stop();
+        GroupManager.Clear();
         if (!keepLocalChores)
             SaveData.Instance().ClearLocalChores();
         AccountManager.SignOut(this, () -> {
@@ -167,7 +194,17 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         ShowSettings();
+        GroupManager.AddListener(GroupChanged);
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        GroupManager.RemoveListener(GroupChanged);
+    }
+
+    // The group was looked up / renamed: show its name.
+    private final GroupManager.OnGroupChanged GroupChanged = this::ShowGroupRow;
 
     @Override
     public boolean onSupportNavigateUp() {
@@ -178,6 +215,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void ShowSettings()
     {
         ShowAccount();
+        ShowGroupRow();
         Notifications.Show();
     }
 }
