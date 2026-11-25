@@ -41,6 +41,38 @@
             android:layout_height="@dimen/chore_icon_size"
             tools:layout="@layout/fragment_chore_icon_selector" />
 
+        <!-- Which group the chore goes into (starts as the main group). Signed in only. -->
+        <LinearLayout
+            android:id="@+id/group_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/chore_group"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/group_name"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/settings_padding"
+                android:layout_weight="1"
+                tools:text="Žygimantas's group" />
+
+            <ImageButton
+                android:id="@+id/change_group_button"
+                style="@style/ChoreEditButton"
+                android:contentDescription="@string/chore_group_change" />
+        </LinearLayout>
+
         <Button
             android:id="@+id/add_button"
             android:layout_width="match_parent"

@@ -36,6 +36,20 @@ public class Chore {
     private long UpdatedAt;
     public long GetUpdatedAt() { return UpdatedAt; }
     public void SetUpdatedAt(long updatedAt) { UpdatedAt = updatedAt; }
+    // The group (cloud.GroupManager) the chore belongs to and is shared with; null for chores that were
+    // never synced (signed out, or saved before groups existed). Those go into the main group once signed in.
+    private String GroupId;
+    public String GetGroupId() { return GroupId; }
+    public void SetGroupId(String groupId) { GroupId = groupId; }
+
+    // A copy for another group, with a new id (the original stays in its group, maybe on other phones too).
+    public Chore CopyToGroup(String groupId)
+    {
+        Chore copy = FromCloud(UUID.randomUUID().toString(), Contents, Icon, WeekDays,
+                CompletionHistory, RemovedCompletions, 0);
+        copy.GroupId = groupId;
+        return copy;
+    }
 
     // The most recent completion; null if the chore was never completed.
     public Long GetLastCompleted()
@@ -124,14 +138,16 @@ public class Chore {
         TreeSet<Long> completions = new TreeSet<>(a.CompletionHistory);
         completions.addAll(b.CompletionHistory);
         completions.removeAll(removed);
-        return FromCloud(newer.Id, newer.Contents, newer.Icon, newer.WeekDays,
+        Chore merged = FromCloud(newer.Id, newer.Contents, newer.Icon, newer.WeekDays,
                 new ArrayList<>(completions), new ArrayList<>(removed), Math.max(a.UpdatedAt, b.UpdatedAt));
+        merged.GroupId = a.GroupId != null ? a.GroupId : b.GroupId;
+        return merged;
     }
 
     // True when both have the same data (ignoring when they were changed).
     public boolean HasSameContent(Chore other)
     {
-        return ContentString().equals(other.ContentString());
+        return ContentString().equals(other.ContentString()) && String.valueOf(GroupId).equals(String.valueOf(other.GroupId));
     }
 
     // '/' and ';' separate values in the save format, so they can't be stored in a description.
@@ -143,15 +159,16 @@ public class Chore {
     }
 
     // Save format: Description/Icon/<7 weekdays, "null" when not scheduled>/Id/LastCompleted/History/
-    // RemovedCompletions/UpdatedAt
-    // History and RemovedCompletions are times separated by ',' ("null" when empty). Older data stops
-    // earlier: before ids existed after the weekdays, before the history after LastCompleted, before
-    // syncing after the history.
+    // RemovedCompletions/UpdatedAt/GroupId
+    // History and RemovedCompletions are times separated by ',' ("null" when empty); GroupId is "null" when
+    // there's none. Older data stops earlier: before ids existed after the weekdays, before the history
+    // after LastCompleted, before syncing after the history, before groups after UpdatedAt.
     private static final int IdIndex = 9;
     private static final int LastCompletedIndex = 10;
     private static final int HistoryIndex = 11;
     private static final int RemovedCompletionsIndex = 12;
     private static final int UpdatedAtIndex = 13;
+    private static final int GroupIdIndex = 14;
     public static Chore Parse(String s)
     {
         String[] parts = s.split("/");
@@ -180,11 +197,13 @@ public class Chore {
             c.RemovedCompletions.addAll(ParseTimes(parts[RemovedCompletionsIndex]));
         if (parts.length > UpdatedAtIndex)
             c.UpdatedAt = Long.parseLong(parts[UpdatedAtIndex]);
+        if (parts.length > GroupIdIndex && !parts[GroupIdIndex].isEmpty() && parts[GroupIdIndex].compareTo("null") != 0)
+            c.GroupId = parts[GroupIdIndex];
         return c;
     }
     public String ToSaveDataString()
     {
-        return ContentString() + "/" + UpdatedAt;
+        return ContentString() + "/" + UpdatedAt + "/" + (GroupId == null ? "null" : GroupId);
     }
 
     // Everything in the save format except UpdatedAt.
@@ -235,6 +254,7 @@ public class Chore {
                 ", CompletionHistory=" + CompletionHistory +
                 ", RemovedCompletions=" + RemovedCompletions +
                 ", UpdatedAt=" + UpdatedAt +
+                ", GroupId=" + GroupId +
                 '}';
     }
 }

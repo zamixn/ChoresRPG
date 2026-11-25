@@ -253,4 +253,66 @@ public class ChoreTest {
         assertEquals("a-b", chore.GetDescription());
         assertEquals("a-b", Chore.Parse(chore.ToSaveDataString()).GetDescription());
     }
+
+    @Test
+    public void RoundTrip_KeepsGroup()
+    {
+        Chore chore = new Chore("Mop", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
+        chore.SetGroupId("group1");
+        chore.SetUpdatedAt(1234);
+        Chore loaded = Chore.Parse(chore.ToSaveDataString());
+        assertEquals("group1", loaded.GetGroupId());
+        assertEquals(1234, loaded.GetUpdatedAt());
+        assertTrue(loaded.HasSameContent(chore));
+    }
+
+    @Test
+    public void RoundTrip_NoGroupStaysNull()
+    {
+        Chore chore = new Chore("Mop", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
+        assertNull(Chore.Parse(chore.ToSaveDataString()).GetGroupId());
+    }
+
+    @Test
+    public void Parse_SavedBeforeGroups_HasNoGroup()
+    {
+        // Saved by the version before groups: ends with UpdatedAt.
+        Chore loaded = Chore.Parse("Mop/CleaningServices/Monday/null/null/null/null/null/null/abc-id/null/null/null/99");
+        assertEquals("abc-id", loaded.GetId());
+        assertEquals(99, loaded.GetUpdatedAt());
+        assertNull(loaded.GetGroupId());
+    }
+
+    @Test
+    public void HasSameContent_DiffersByGroup()
+    {
+        Chore chore = new Chore("Mop", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
+        Chore other = Chore.Parse(chore.ToSaveDataString());
+        other.SetGroupId("group1");
+        assertFalse(chore.HasSameContent(other));
+    }
+
+    @Test
+    public void Merge_KeepsGroup()
+    {
+        Chore local = new Chore("Mop", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
+        local.SetGroupId("group1");
+        Chore remote = Chore.Parse(local.ToSaveDataString());
+        remote.SetUpdatedAt(500);
+        assertEquals("group1", Chore.Merge(local, remote).GetGroupId());
+    }
+
+    @Test
+    public void CopyToGroup_NewIdSameContent()
+    {
+        Chore chore = new Chore("Mop", Arrays.asList(WeekDay.Monday), ChoreIconEnum.CleaningServices);
+        chore.SetGroupId("group1");
+        chore.CompleteAt(1000);
+        Chore copy = chore.CopyToGroup("group2");
+        assertNotEquals(chore.GetId(), copy.GetId());
+        assertEquals("group2", copy.GetGroupId());
+        assertEquals("Mop", copy.GetDescription());
+        assertEquals(Long.valueOf(1000), copy.GetLastCompleted());
+        assertEquals("group1", chore.GetGroupId());
+    }
 }

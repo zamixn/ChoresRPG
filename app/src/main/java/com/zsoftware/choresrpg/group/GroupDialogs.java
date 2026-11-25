@@ -7,9 +7,12 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.zsoftware.choresrpg.R;
+import com.zsoftware.choresrpg.cloud.Group;
 import com.zsoftware.choresrpg.cloud.GroupManager;
 import com.zsoftware.choresrpg.databinding.DialogGroupNameBinding;
 import com.zsoftware.choresrpg.databinding.DialogInviteCodeBinding;
+
+import java.util.List;
 
 // Popups used by the group screens.
 public class GroupDialogs {
@@ -27,6 +30,35 @@ public class GroupDialogs {
     public interface OnCode
     {
         void Code(String code);
+    }
+
+    public interface OnGroupChosen
+    {
+        void GroupChosen(String groupId);
+    }
+
+    // Asks which of the user's groups to use (a list with the current choice ticked). Picking one closes it.
+    public static void ChooseGroup(Activity activity, int titleId, String selectedGroupId, OnGroupChosen onChosen)
+    {
+        List<Group> groups = GroupManager.GetGroups();
+        if (groups.isEmpty())
+            return;
+        String[] names = new String[groups.size()];
+        int selected = -1;
+        for (int i = 0; i < groups.size(); i++)
+        {
+            names[i] = groups.get(i).Name;
+            if (groups.get(i).Id.equals(selectedGroupId))
+                selected = i;
+        }
+        new MaterialAlertDialogBuilder(activity)
+                .setTitle(titleId)
+                .setSingleChoiceItems(names, selected, (dialog, which) -> {
+                    dialog.dismiss();
+                    onChosen.GroupChosen(groups.get(which).Id);
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     // Asks for an invite code (a pasted invite link works too). Unusable input keeps the popup open.
@@ -81,12 +113,12 @@ public class GroupDialogs {
         });
     }
 
-    // Asks what happens to the chores on this phone when moving to another group: a short explanation and
-    // two answers (yes = take them along / keep a copy). Cancel does nothing.
-    public static void AskAboutChores(Activity activity, int titleId, String message, int yesId, int noId, OnChoice onChoice)
+    // Asks what happens to a group's chores (e.g. when leaving it): a short explanation and two answers
+    // (yes = keep a copy). Cancel does nothing.
+    public static void AskAboutChores(Activity activity, String title, String message, int yesId, int noId, OnChoice onChoice)
     {
         new MaterialAlertDialogBuilder(activity)
-                .setTitle(titleId)
+                .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(yesId, (d, which) -> onChoice.Chose(true))
                 .setNegativeButton(noId, (d, which) -> onChoice.Chose(false))

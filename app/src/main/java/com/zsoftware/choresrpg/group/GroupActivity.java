@@ -22,16 +22,20 @@ import com.zsoftware.choresrpg.cloud.GroupManager;
 import com.zsoftware.choresrpg.databinding.ActivityGroupBinding;
 import com.zsoftware.choresrpg.databinding.GroupMemberItemBinding;
 
-// The user's group: its name (editable), creator and members, plus invite / join with a code /
-// create a new group / leave.
-// The creator can remove members. Opened from Settings; only while signed in.
+// One of the user's groups: its name (editable), creator and members, plus invite / leave. The creator
+// can remove members. Opened from the group list; closes itself when the user is no longer in the group.
 public class GroupActivity extends AppCompatActivity {
 
-    private ActivityGroupBinding binding;
+    private static final String ExtraGroupId = "GroupId";
 
-    public static Intent CreateIntent(Context context)
+    private ActivityGroupBinding binding;
+    private String GroupId;
+
+    public static Intent CreateIntent(Context context, String groupId)
     {
-        return new Intent(context, GroupActivity.class);
+        Intent intent = new Intent(context, GroupActivity.class);
+        intent.putExtra(ExtraGroupId, groupId);
+        return intent;
     }
 
     @Override
@@ -50,7 +54,8 @@ public class GroupActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setTitle(R.string.group_title);
 
-        if (!AccountManager.IsSignedIn())
+        GroupId = getIntent().getStringExtra(ExtraGroupId);
+        if (!AccountManager.IsSignedIn() || GroupId == null)
         {
             ShortToast.Show(this, R.string.group_sign_in_needed);
             finish();
@@ -59,8 +64,6 @@ public class GroupActivity extends AppCompatActivity {
 
         binding.editNameButton.setOnClickListener(view -> Rename());
         binding.inviteButton.setOnClickListener(view -> Invite());
-        binding.joinWithCodeButton.setOnClickListener(view -> JoinWithCode());
-        binding.createGroupButton.setOnClickListener(view -> CreateNewGroup());
         binding.leaveButton.setOnClickListener(view -> Leave());
     }
 
@@ -78,7 +81,7 @@ public class GroupActivity extends AppCompatActivity {
         GroupManager.RemoveListener(GroupChanged);
     }
 
-    // The group changed (renamed, members joined / left, or this user was moved to a new group): redraw.
+    // The group changed (renamed, members joined / left, or this user left / was removed): redraw.
     private final GroupManager.OnGroupChanged GroupChanged = new GroupManager.OnGroupChanged() {
         @Override
         public void GroupChanged() {
@@ -93,9 +96,20 @@ public class GroupActivity extends AppCompatActivity {
         return true;
     }
 
+    private Group GetGroup()
+    {
+        return GroupManager.GetGroup(GroupId);
+    }
+
     private void ShowGroup()
     {
-        Group group = GroupManager.GetCurrentGroup();
+        Group group = GetGroup();
+        if (group == null && GroupManager.IsLoaded())
+        {
+            // Left, removed, or deleted: nothing to show.
+            finish();
+            return;
+        }
         binding.loadingText.setVisibility(group == null ? View.VISIBLE : View.GONE);
         binding.groupDetails.setVisibility(group == null ? View.GONE : View.VISIBLE);
         SetButtonsEnabled(true);
@@ -122,28 +136,27 @@ public class GroupActivity extends AppCompatActivity {
             binding.membersList.addView(row.getRoot());
         }
 
-        // Alone in the group: nothing to leave (inviting people is the way to share).
         boolean alone = group.Members.size() <= 1;
         binding.onlyMemberText.setVisibility(alone ? View.VISIBLE : View.GONE);
-        binding.leaveButton.setVisibility(alone ? View.GONE : View.VISIBLE);
+        // Alone in the only group: leaving would just make a new empty group; inviting people is the way to share.
+        boolean onlyGroup = GroupManager.GetGroups().size() <= 1;
+        binding.leaveButton.setVisibility(alone && onlyGroup ? View.GONE : View.VISIBLE);
     }
 
     private void SetButtonsEnabled(boolean enabled)
     {
         binding.editNameButton.setEnabled(enabled);
         binding.inviteButton.setEnabled(enabled);
-        binding.joinWithCodeButton.setEnabled(enabled);
-        binding.createGroupButton.setEnabled(enabled);
         binding.leaveButton.setEnabled(enabled);
     }
 
     private void Rename()
     {
-        Group group = GroupManager.GetCurrentGroup();
+        Group group = GetGroup();
         if (group == null)
             return;
         GroupDialogs.AskName(this, R.string.group_rename, group.Name, name ->
-                GroupManager.Rename(name, success -> {
+                GroupManager.Rename(GroupId, name, success -> {
                     if (!success)
                         ShortToast.Show(this, R.string.group_action_failed);
                     ShowGroup();
@@ -154,7 +167,7 @@ public class GroupActivity extends AppCompatActivity {
     // tappable; a code can always be typed in with "Join with a code".
     private void Invite()
     {
-        if (GroupManager.GetCurrentGroup() == null)
+        if (GetGroup() == null)
             return;
         new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.group_invite)
@@ -168,11 +181,11 @@ public class GroupActivity extends AppCompatActivity {
     // Shares the invite (any app: messages, mail ...): the link that opens the app, or only the code.
     private void ShareInvite(boolean asLink)
     {
-        Group group = GroupManager.GetCurrentGroup();
+        Group group = GetGroup();
         if (group == null)
             return;
         SetButtonsEnabled(false);
-        GroupManager.GetInviteCode(code -> {
+        GroupManager.GetInviteCode(GroupId, code -> {
             SetButtonsEnabled(true);
             if (code == null)
             {
@@ -189,12 +202,6 @@ public class GroupActivity extends AppCompatActivity {
         });
     }
 
-    // Asks for an invite code (or a pasted invite link) and opens the join screen for it.
-    private void JoinWithCode()
-    {
-        GroupDialogs.AskInviteCode(this, code -> startActivity(JoinGroupActivity.CreateIntent(this, code)));
-    }
-
     private void RemoveMember(String memberId, String name)
     {
         new MaterialAlertDialogBuilder(this)
@@ -202,52 +209,41 @@ public class GroupActivity extends AppCompatActivity {
                 .setMessage(R.string.group_remove_message)
                 .setNegativeButton(android.R.string.cancel, null)
                 .setPositiveButton(R.string.group_remove, (d, which) ->
-                        GroupManager.RemoveMember(memberId, success -> {
+                        GroupManager.RemoveMember(GroupId, memberId, success -> {
                             if (!success)
                                 ShortToast.Show(this, R.string.group_action_failed);
                         }))
                 .show();
     }
 
-    // New group with a name; then: take this phone's chores into it, or start empty?
-    private void CreateNewGroup()
-    {
-        Group group = GroupManager.GetCurrentGroup();
-        if (group == null)
-            return;
-        GroupDialogs.AskName(this, R.string.group_create_new, null, name ->
-                GroupDialogs.AskAboutChores(this, R.string.group_create_chores_title,
-                        getString(R.string.group_create_chores_message, group.Name),
-                        R.string.group_bring_chores, R.string.group_start_empty,
-                        bring -> {
-                            SetButtonsEnabled(false);
-                            GroupManager.CreateNewGroup(name, bring, success -> FinishedSwitching(success, R.string.group_created));
-                        }));
-    }
-
-    // Leave: explains what happens (and who becomes the creator), then: keep a copy of the chores?
+    // Leave: explains what happens (where a copy of the chores would go, who becomes the creator, or that
+    // the group is deleted), then: keep a copy of its chores, or drop them?
     private void Leave()
     {
-        Group group = GroupManager.GetCurrentGroup();
+        Group group = GetGroup();
         if (group == null)
             return;
         String userId = AccountManager.GetUserId();
-        String message = getString(R.string.group_leave_message, group.Name);
+        Group copyTarget = GroupManager.GetLeaveCopyTarget(GroupId);
+        String message = copyTarget == null
+                ? getString(R.string.group_leave_message_only_group)
+                : getString(R.string.group_leave_message, copyTarget.Name);
         String newOwner = group.GetOwnerAfterLeaving(userId);
-        if (group.OwnerId.equals(userId) && newOwner != null)
+        if (newOwner == null)
+            message += " " + getString(R.string.group_leave_last_member);
+        else if (group.OwnerId.equals(userId))
             message += " " + getString(R.string.group_leave_new_owner, group.GetMemberName(newOwner));
-        GroupDialogs.AskAboutChores(this, R.string.group_leave_title, message,
-                R.string.group_keep_copy, R.string.group_start_empty,
+        GroupDialogs.AskAboutChores(this, getString(R.string.group_leave_title, group.Name), message,
+                R.string.group_keep_copy, R.string.group_drop_chores,
                 keep -> {
                     SetButtonsEnabled(false);
-                    GroupManager.Leave(keep, success -> FinishedSwitching(success, R.string.group_left));
+                    GroupManager.Leave(GroupId, keep, success -> {
+                        ShortToast.Show(this, success ? R.string.group_left : R.string.group_action_failed);
+                        if (success)
+                            finish();
+                        else
+                            ShowGroup();
+                    });
                 });
-    }
-
-    private void FinishedSwitching(boolean success, int doneMessageId)
-    {
-        ShortToast.Show(this, success ? doneMessageId : R.string.group_action_failed);
-        // The new group is being looked up; the listener redraws when it's there.
-        ShowGroup();
     }
 }

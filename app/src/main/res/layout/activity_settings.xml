@@ -86,7 +86,7 @@
                 style="@style/SettingsSectionHeader"
                 android:text="@string/settings_group_header" />
 
-            <!-- Opens the group screen (needs a Google account; a toast says so when signed out). -->
+            <!-- Opens the group list (needs a Google account; a toast says so when signed out). -->
             <LinearLayout
                 android:id="@+id/group_row"
                 style="@style/SettingsRow">
@@ -96,12 +96,12 @@
                     <TextView
                         android:id="@+id/group_title"
                         style="@style/SettingsRowTitle"
-                        android:text="@string/settings_group" />
+                        android:text="@string/settings_groups" />
 
                     <TextView
                         android:id="@+id/group_summary"
                         style="@style/SettingsRowSummary"
-                        tools:text="Žygimantas's group" />
+                        tools:text="Žygimantas's group, Flat 4" />
                 </LinearLayout>
 
                 <com.google.android.material.button.MaterialButton
@@ -110,7 +110,33 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/settings_padding"
-                    android:text="@string/settings_view_group" />
+                    android:text="@string/settings_view_groups" />
+            </LinearLayout>
+
+            <!-- The main group: where new chores go by default. Signed in only. -->
+            <LinearLayout
+                android:id="@+id/main_group_row"
+                style="@style/SettingsRow">
+
+                <LinearLayout style="@style/SettingsRowText">
+
+                    <TextView
+                        style="@style/SettingsRowTitle"
+                        android:text="@string/settings_main_group" />
+
+                    <TextView
+                        android:id="@+id/main_group_summary"
+                        style="@style/SettingsRowSummary"
+                        tools:text="Žygimantas's group · new chores go here" />
+                </LinearLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/main_group_button"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/settings_padding"
+                    android:text="@string/settings_main_group_change" />
             </LinearLayout>
 
             <TextView

@@ -3,8 +3,9 @@ rules_version = '2';
 // ChoresRPG security rules. Publish in the Firebase console (Firestore Database -> Rules) or with
 // `firebase deploy --only firestore:rules`.
 //
-//   users/{userId}              the user's own record (which group they're in); only they can use it
-//   groups/{groupId}            name, ownerId, members, memberNames, inviteCode
+//   users/{userId}              older app versions' data (cleaned up by the app); only the user can use it
+//   groups/{groupId}            name, ownerId, members, memberNames, inviteCode, createdAt; a user finds
+//                               their groups by listing the ones whose members include them
 //   groups/{groupId}/chores/*   the group's chores; any member can read and write them
 //   invites/{code}              looked up by invite links: anyone signed in who knows the code can read it
 service cloud.firestore {
@@ -61,7 +62,8 @@ service cloud.firestore {
           && get(/databases/$(database)/documents/invites/$(request.resource.data.joinCode)).data.groupId == groupId;
       }
 
-      allow get: if signedIn() && me() in resource.data.members;
+      // get: one group; list: the user's groups (the app asks for groups whose members include them).
+      allow get, list: if signedIn() && me() in resource.data.members;
       allow create: if signedIn()
         && request.resource.data.ownerId == me()
         && request.resource.data.members == [me()];

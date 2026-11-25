@@ -13,6 +13,10 @@ import android.view.ViewGroup;
 
 import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
 import com.zsoftware.choresrpg.choreicon.ChoreIconSelectorFragment;
+import com.zsoftware.choresrpg.cloud.AccountManager;
+import com.zsoftware.choresrpg.cloud.Group;
+import com.zsoftware.choresrpg.cloud.GroupManager;
+import com.zsoftware.choresrpg.group.GroupDialogs;
 import com.zsoftware.choresrpg.databinding.FragmentAddChoreFragmentBinding;
 import com.zsoftware.choresrpg.databinding.FragmentChoreListBinding;
 
@@ -30,6 +34,9 @@ public class AddChoreFragment extends Fragment {
     public static final String ArgSelectedDay = "SelectedDay";
 
     private FragmentAddChoreFragmentBinding binding;
+    // The group the new chore goes into (null while signed out or before the groups are known).
+    private String GroupId;
+    private static final String StateGroupId = "GroupId";
 
     public AddChoreFragment() {
         // Required empty public constructor
@@ -56,6 +63,31 @@ public class AddChoreFragment extends Fragment {
     }
 
     @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(StateGroupId, GroupId);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
+
+    // The group row shows only while signed in with the groups known; one group needs no choosing.
+    private void ShowGroup()
+    {
+        Group group = GroupManager.GetGroup(GroupId);
+        boolean show = AccountManager.IsSignedIn() && group != null;
+        binding.groupRow.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (!show)
+            return;
+        binding.groupName.setText(group.Name);
+        boolean canChoose = GroupManager.GetGroups().size() > 1;
+        binding.changeGroupButton.setVisibility(canChoose ? View.VISIBLE : View.GONE);
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -66,6 +98,28 @@ public class AddChoreFragment extends Fragment {
             ((WeekSelectorFragment)binding.weekDaysFragmentContainerView.getFragment()).SetInitialSelection(selectedDay);
         }
 
+        if (savedInstanceState != null)
+            GroupId = savedInstanceState.getString(StateGroupId);
+        else
+            GroupId = GroupManager.GetMainGroupId();
+        ShowGroup();
+        View.OnClickListener chooseGroup = new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (GroupManager.GetGroups().size() <= 1)
+                    return;
+                GroupDialogs.ChooseGroup(requireActivity(), R.string.group_choose, GroupId, new GroupDialogs.OnGroupChosen() {
+                    @Override
+                    public void GroupChosen(String groupId) {
+                        GroupId = groupId;
+                        ShowGroup();
+                    }
+                });
+            }
+        };
+        binding.groupRow.setOnClickListener(chooseGroup);
+        binding.changeGroupButton.setOnClickListener(chooseGroup);
+
         binding.addButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -74,6 +128,8 @@ public class AddChoreFragment extends Fragment {
                 List<WeekDay> weekdays = ((WeekSelectorFragment)binding.weekDaysFragmentContainerView.getFragment()).GetSelectedWeekDays();
                 ChoreIconEnum icon = ((ChoreIconSelectorFragment)binding.iconFragmentContainerView.getFragment()).ChoreIcon;
                 Chore c = new Chore(desc, weekdays, icon);
+                // Signed out (or groups not loaded yet): no group; it goes into the main group later.
+                c.SetGroupId(GroupId);
 
                 List<Chore> chores = SaveData.Instance().GetChoreList();
                 chores.add(c);

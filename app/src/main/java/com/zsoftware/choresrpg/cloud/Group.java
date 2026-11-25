@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// A group of people sharing one chore list (Firestore: groups/{groupId}). Every signed-in user is in
-// exactly one group; it starts as their own "name's group".
+// A group of people sharing a chore list (Firestore: groups/{groupId}). A signed-in user can be in
+// several groups and is always in at least one; the first is their own "name's group".
 public class Group {
     public final String Id;
     public final String Name;
@@ -20,8 +20,11 @@ public class Group {
     public final Map<String, String> MemberNames;
     // Code of the group's invite link (invites/{code}); null until someone first shares it.
     public final String InviteCode;
+    // When it was created (milliseconds since the epoch); groups are listed oldest first.
+    public final long CreatedAt;
 
-    public Group(String id, String name, String ownerId, List<String> members, Map<String, String> memberNames, String inviteCode)
+    public Group(String id, String name, String ownerId, List<String> members, Map<String, String> memberNames,
+                 String inviteCode, long createdAt)
     {
         Id = id;
         Name = name;
@@ -29,6 +32,7 @@ public class Group {
         Members = members;
         MemberNames = memberNames;
         InviteCode = inviteCode;
+        CreatedAt = createdAt;
     }
 
     public boolean IsMember(String userId)
@@ -74,7 +78,8 @@ public class Group {
         }
         String name = document.getString("name");
         String owner = document.getString("ownerId");
+        Long createdAt = document.getLong("createdAt");
         return new Group(document.getId(), name == null ? "" : name, owner == null ? "" : owner,
-                members, names, document.getString("inviteCode"));
+                members, names, document.getString("inviteCode"), createdAt == null ? 0 : createdAt);
     }
 }

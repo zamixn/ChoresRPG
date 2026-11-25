@@ -17,13 +17,11 @@ import com.zsoftware.choresrpg.ScreenSetup;
 import com.zsoftware.choresrpg.ShortToast;
 import com.zsoftware.choresrpg.cloud.AccountManager;
 import com.zsoftware.choresrpg.cloud.ChoreSync;
-import com.zsoftware.choresrpg.cloud.Group;
 import com.zsoftware.choresrpg.cloud.GroupManager;
 import com.zsoftware.choresrpg.databinding.ActivityJoinGroupBinding;
 
-// Opened by a group invite link (choresrpg://join/CODE) or by "Join with a code" in the group screen:
-// asks the user to confirm joining, signing in first if needed. A user is in one group at a time, so
-// joining leaves the current group; a popup asks whether to bring the phone's chores along.
+// Opened by a group invite link (choresrpg://join/CODE) or by "Join with a code" in the group list:
+// asks the user to confirm joining, signing in first if needed. The user stays in their other groups.
 public class JoinGroupActivity extends AppCompatActivity {
 
     private static final String ExtraCode = "InviteCode";
@@ -115,17 +113,36 @@ public class JoinGroupActivity extends AppCompatActivity {
                 return;
             }
             Invite = invite;
-            // The user's current group is needed to tell them what they leave (and whether they're in it).
-            GroupManager.Resolve(this, groupId -> ShowConfirmation());
             ShowConfirmation();
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        GroupManager.AddListener(GroupChanged);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        GroupManager.RemoveListener(GroupChanged);
+    }
+
+    // The user's groups loaded or changed: whether they're already in the invite's group may be known now.
+    private final GroupManager.OnGroupChanged GroupChanged = new GroupManager.OnGroupChanged() {
+        @Override
+        public void GroupChanged() {
+            if (Invite != null && !Joining)
+                ShowConfirmation();
+        }
+    };
+    private boolean Joining = false;
+
     private void ShowConfirmation()
     {
-        Group current = GroupManager.GetCurrentGroup();
         String groupName = Invite.GroupName == null ? "" : Invite.GroupName;
-        if (current != null && current.Id.equals(Invite.GroupId))
+        if (GroupManager.GetGroup(Invite.GroupId) != null)
         {
             binding.joinTitle.setText(getString(R.string.group_join_already_title, groupName));
             binding.joinText.setText(R.string.group_join_already_text);
@@ -133,36 +150,32 @@ public class JoinGroupActivity extends AppCompatActivity {
             return;
         }
         binding.joinTitle.setText(getString(R.string.group_join_title, groupName));
-        String text = getString(R.string.group_join_text);
-        if (current != null)
-            text += " " + getString(R.string.group_join_leaves, current.Name);
-        binding.joinText.setText(text);
+        binding.joinText.setText(R.string.group_join_text);
         binding.joinButton.setVisibility(View.VISIBLE);
         binding.joinButton.setText(R.string.group_join);
-        binding.joinButton.setEnabled(current != null);   // wait until the current group is known
-        binding.joinButton.setOnClickListener(view -> AskAboutChoresAndJoin());
+        binding.joinButton.setEnabled(GroupManager.IsLoaded());   // wait until the user's groups are known
+        binding.joinButton.setOnClickListener(view -> Join());
     }
 
-    private void AskAboutChoresAndJoin()
+    private void Join()
     {
-        Group current = GroupManager.GetCurrentGroup();
-        String currentName = current == null ? "" : current.Name;
-        GroupDialogs.AskAboutChores(this, R.string.group_join_chores_title,
-                getString(R.string.group_join_chores_message, currentName, Invite.GroupName),
-                R.string.group_bring_chores, R.string.group_leave_chores_behind,
-                bring -> {
-                    ShowBusy(true);
-                    GroupManager.Join(Invite, bring, success -> {
-                        ShowBusy(false);
-                        if (!success)
-                        {
-                            ShortToast.Show(this, R.string.group_action_failed);
-                            return;
-                        }
-                        ShortToast.Show(this, getString(R.string.group_joined, Invite.GroupName));
-                        OpenApp();
-                    });
-                });
+        Joining = true;
+        ShowBusy(true);
+        GroupManager.Join(Invite, success -> {
+            Joining = false;
+            ShowBusy(false);
+            if (!success)
+            {
+                ShortToast.Show(this, R.string.group_action_failed);
+                return;
+            }
+            ShortToast.Show(this, getString(R.string.group_joined, Invite.GroupName));
+            // From a link: into the app. From "Join with a code": back to the group list.
+            if (isTaskRoot())
+                OpenApp();
+            else
+                finish();
+        });
     }
 
     private void ShowInvalid()

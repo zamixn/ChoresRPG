@@ -7,8 +7,12 @@ import android.app.Application;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -64,10 +68,11 @@ public class SaveData {
     }
 
     // Told about every change the user makes to the chores, so it can send them to the cloud
-    // (cloud.ChoreSync). Not called for changes that came from the cloud.
+    // (cloud.ChoreSync). Not called for changes that came from the cloud. Deleted chores are passed as
+    // they were before deleting (their group says where the deletion goes).
     public interface SyncHandler
     {
-        void ChoresSaved(List<Chore> changedChores, List<String> deletedChoreIds);
+        void ChoresSaved(List<Chore> changedChores, List<Chore> deletedChores);
     }
     private static SyncHandler Sync;
     public static void SetSyncHandler(SyncHandler syncHandler) { Sync = syncHandler; }
@@ -179,16 +184,19 @@ public class SaveData {
                 changed.add(chore);
             }
         }
-        // What's left in 'saved' was deleted.
-        List<String> deletedIds = new ArrayList<>(saved.keySet());
-        Map<String, Long> pendingDeletes = GetPendingDeletes();
-        for (String id : deletedIds)
-            pendingDeletes.put(id, now);
+        // What's left in 'saved' was deleted. Only chores in a group exist in the cloud.
+        List<Chore> deleted = new ArrayList<>(saved.values());
+        List<PendingDelete> pendingDeletes = LoadPendingDeletes();
+        for (Chore chore : deleted)
+        {
+            if (chore.GetGroupId() != null)
+                pendingDeletes.add(new PendingDelete(chore.GetId(), now, chore.GetGroupId()));
+        }
 
         WriteChoreList(chores);
         WritePendingDeletes(pendingDeletes);
-        if (Sync != null && (!changed.isEmpty() || !deletedIds.isEmpty()))
-            Sync.ChoresSaved(changed, deletedIds);
+        if (Sync != null && (!changed.isEmpty() || !deleted.isEmpty()))
+            Sync.ChoresSaved(changed, deleted);
     }
 
     // Saves chores merged from the cloud: as they are, without new UpdatedAt times or telling the sync handler.
@@ -213,39 +221,79 @@ public class SaveData {
     }
 
     // Chores deleted on this phone that the cloud doesn't know about yet (e.g. deleted while signed out),
-    // with the time they were deleted. Saved as "id:time;id:time".
+    // with the time they were deleted and their group. Saved as "id:time:groupId;id:time:groupId"; entries
+    // saved before groups existed have no group and count for every group.
     private static final String PendingDeletesKey = "PendingDeletes";
-    public Map<String, Long> GetPendingDeletes()
+    private static class PendingDelete
     {
-        Map<String, Long> deletes = new HashMap<>();
+        final String Id;
+        final long Time;
+        final String GroupId;
+
+        PendingDelete(String id, long time, String groupId)
+        {
+            Id = id;
+            Time = time;
+            GroupId = groupId;
+        }
+
+        boolean IsFor(String groupId) { return GroupId == null || GroupId.equals(groupId); }
+    }
+
+    private List<PendingDelete> LoadPendingDeletes()
+    {
+        List<PendingDelete> deletes = new ArrayList<>();
         String s = SharedPreferences.getString(PendingDeletesKey, "");
         if (s.isEmpty())
             return deletes;
         for (String entry : s.split(";"))
         {
             String[] parts = entry.split(":");
-            if (parts.length == 2)
-                deletes.put(parts[0], Long.parseLong(parts[1]));
+            if (parts.length >= 2)
+                deletes.add(new PendingDelete(parts[0], Long.parseLong(parts[1]), parts.length > 2 ? parts[2] : null));
         }
         return deletes;
     }
 
-    // Called once the cloud knows about the deletion.
-    public void ClearPendingDelete(String id)
+    // The group's pending deletions: chore id -> time deleted.
+    public Map<String, Long> GetPendingDeletes(String groupId)
     {
-        Map<String, Long> deletes = GetPendingDeletes();
-        if (deletes.remove(id) != null)
+        Map<String, Long> deletes = new HashMap<>();
+        for (PendingDelete delete : LoadPendingDeletes())
+        {
+            if (delete.IsFor(groupId))
+                deletes.put(delete.Id, delete.Time);
+        }
+        return deletes;
+    }
+
+    // Called once the group in the cloud knows about the deletion.
+    public void ClearPendingDelete(String groupId, String id)
+    {
+        List<PendingDelete> deletes = LoadPendingDeletes();
+        boolean removed = false;
+        for (int i = deletes.size() - 1; i >= 0; i--)
+        {
+            if (deletes.get(i).Id.equals(id) && deletes.get(i).IsFor(groupId))
+            {
+                deletes.remove(i);
+                removed = true;
+            }
+        }
+        if (removed)
             WritePendingDeletes(deletes);
     }
 
-    private void WritePendingDeletes(Map<String, Long> deletes)
+    private void WritePendingDeletes(List<PendingDelete> deletes)
     {
         StringBuilder s = new StringBuilder();
-        for (Map.Entry<String, Long> entry : deletes.entrySet())
+        for (PendingDelete delete : deletes)
         {
             if (s.length() > 0)
                 s.append(';');
-            s.append(entry.getKey()).append(':').append(entry.getValue());
+            s.append(delete.Id).append(':').append(delete.Time);
+            if (delete.GroupId != null)
+                s.append(':').append(delete.GroupId);
         }
         SharedPreferences.Editor editor = SharedPreferences.edit();
         editor.putString(PendingDeletesKey, s.toString());
@@ -263,12 +311,86 @@ public class SaveData {
     public void ClearLocalChores()
     {
         WriteChoreList(new ArrayList<>());
-        WritePendingDeletes(new HashMap<>());
+        WritePendingDeletes(new ArrayList<>());
     }
 
-    // Forgets deletions not yet sent to the cloud (when moving to another group: they were for the old one).
-    public void ClearPendingDeletes()
+    // Removes a group's chores from this phone only (after leaving it or being removed from it): nothing is
+    // sent to the cloud, so the group keeps them. Returns the removed chores.
+    public List<Chore> RemoveGroupChores(String groupId)
     {
-        WritePendingDeletes(new HashMap<>());
+        List<Chore> kept = new ArrayList<>();
+        List<Chore> removed = new ArrayList<>();
+        for (Chore chore : GetChoreList())
+        {
+            if (groupId.equals(chore.GetGroupId()))
+                removed.add(chore);
+            else
+                kept.add(chore);
+        }
+        List<PendingDelete> deletes = new ArrayList<>();
+        for (PendingDelete delete : LoadPendingDeletes())
+        {
+            if (!groupId.equals(delete.GroupId))
+                deletes.add(delete);
+        }
+        WriteChoreList(kept);
+        WritePendingDeletes(deletes);
+        return removed;
+    }
+
+    // The groups this phone last saw the user in (id -> name), to notice being removed from one while the
+    // app was closed. Saved as "id:name;id:name" with the names URL-encoded.
+    private static final String KnownGroupsKey = "KnownGroups";
+    public Map<String, String> GetKnownGroups()
+    {
+        Map<String, String> groups = new LinkedHashMap<>();
+        String s = SharedPreferences.getString(KnownGroupsKey, "");
+        if (s.isEmpty())
+            return groups;
+        for (String entry : s.split(";"))
+        {
+            String[] parts = entry.split(":", 2);
+            if (parts.length == 2)
+                groups.put(parts[0], Decode(parts[1]));
+        }
+        return groups;
+    }
+
+    public void SetKnownGroups(Map<String, String> groups)
+    {
+        StringBuilder s = new StringBuilder();
+        for (Map.Entry<String, String> group : groups.entrySet())
+        {
+            if (s.length() > 0)
+                s.append(';');
+            s.append(group.getKey()).append(':').append(Encode(group.getValue()));
+        }
+        SharedPreferences.Editor editor = SharedPreferences.edit();
+        editor.putString(KnownGroupsKey, s.toString());
+        editor.commit();
+    }
+
+    private static String Encode(String text)
+    {
+        try
+        {
+            return URLEncoder.encode(text, "UTF-8");
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            return "";
+        }
+    }
+
+    private static String Decode(String text)
+    {
+        try
+        {
+            return URLDecoder.decode(text, "UTF-8");
+        }
+        catch (UnsupportedEncodingException | IllegalArgumentException e)
+        {
+            return "";
+        }
     }
 }

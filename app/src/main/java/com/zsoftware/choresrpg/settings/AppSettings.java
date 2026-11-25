@@ -49,12 +49,24 @@ public class AppSettings {
     public int GetEveningTime() { return SharedPreferences.getInt(EveningTimeKey, DefaultEveningTime); }
     public void SetEveningTime(int minutes) { Save(SharedPreferences.edit().putInt(EveningTimeKey, minutes)); }
 
-    // Name of the group the user was removed from, shown once as a notice ("" = no notice).
+    // Names of the groups the user was removed from (", " between them), shown once as a notice.
     private static final String RemovedFromGroupKey = "RemovedFromGroup";
     public String GetRemovedFromGroup() { return SharedPreferences.getString(RemovedFromGroupKey, ""); }
-    public void SetRemovedFromGroup(String groupName) { Save(SharedPreferences.edit().putString(RemovedFromGroupKey, groupName)); }
+    public void AddRemovedFromGroup(String groupName)
+    {
+        String names = GetRemovedFromGroup();
+        if (!names.isEmpty() && !groupName.isEmpty())
+            names += ", ";
+        Save(SharedPreferences.edit().putString(RemovedFromGroupKey, names + groupName));
+    }
     public boolean WasRemovedFromGroup() { return SharedPreferences.contains(RemovedFromGroupKey); }
     public void ClearRemovedFromGroup() { Save(SharedPreferences.edit().remove(RemovedFromGroupKey)); }
+
+    // The group new chores go into by default (cloud.GroupManager.GetMainGroupId falls back to the oldest
+    // group when this one is unset or gone). Null when not chosen.
+    private static final String MainGroupKey = "MainGroup";
+    public String GetMainGroupId() { return SharedPreferences.getString(MainGroupKey, null); }
+    public void SetMainGroupId(String groupId) { Save(SharedPreferences.edit().putString(MainGroupKey, groupId)); }
 
     // The first-time setup (FTUE) was finished; until then it opens when the app starts.
     private static final String FtueCompletedKey = "FtueCompleted";

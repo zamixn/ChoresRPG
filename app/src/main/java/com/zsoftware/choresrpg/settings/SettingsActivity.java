@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.view.View;
 
 import androidx.activity.EdgeToEdge;
@@ -21,8 +22,12 @@ import com.zsoftware.choresrpg.cloud.AccountManager;
 import com.zsoftware.choresrpg.cloud.ChoreSync;
 import com.zsoftware.choresrpg.cloud.Group;
 import com.zsoftware.choresrpg.cloud.GroupManager;
-import com.zsoftware.choresrpg.group.GroupActivity;
+import com.zsoftware.choresrpg.group.GroupDialogs;
+import com.zsoftware.choresrpg.group.GroupListActivity;
 import com.zsoftware.choresrpg.databinding.ActivitySettingsBinding;
+
+import java.util.ArrayList;
+import java.util.List;
 
 // Settings: the account (sign in with Google), daily chore notifications on/off and the morning /
 // evening times they are sent at. Opened from the ⋮ menu of the week and month views.
@@ -50,8 +55,10 @@ public class SettingsActivity extends AppCompatActivity {
         binding.testNotificationButton.setOnClickListener(view -> Notifications.SendTestNotification());
         binding.accountButton.setOnClickListener(view -> OnAccountButton());
         binding.deleteAccountButton.setOnClickListener(view -> OnDeleteAccountButton());
-        binding.groupRow.setOnClickListener(view -> OpenGroup());
-        binding.groupButton.setOnClickListener(view -> OpenGroup());
+        binding.groupRow.setOnClickListener(view -> OpenGroups());
+        binding.groupButton.setOnClickListener(view -> OpenGroups());
+        binding.mainGroupRow.setOnClickListener(view -> ChooseMainGroup());
+        binding.mainGroupButton.setOnClickListener(view -> ChooseMainGroup());
     }
 
     // Signed out: "Not signed in" + Sign in with Google. Signed in: the account + Sign out, and Delete account.
@@ -68,24 +75,50 @@ public class SettingsActivity extends AppCompatActivity {
         ShowGroupRow();
     }
 
-    // Groups need a Google account: signed out, a toast says so instead of opening the group screen.
-    private void OpenGroup()
+    // Groups need a Google account: signed out, a toast says so instead of opening the group list.
+    private void OpenGroups()
     {
         if (!AccountManager.IsSignedIn())
         {
             ShortToast.Show(this, R.string.group_sign_in_needed);
             return;
         }
-        startActivity(GroupActivity.CreateIntent(this));
+        startActivity(GroupListActivity.CreateIntent(this));
     }
 
+    // Picks the group new chores go into by default.
+    private void ChooseMainGroup()
+    {
+        if (!GroupManager.IsLoaded())
+            return;
+        GroupDialogs.ChooseGroup(this, R.string.settings_main_group, GroupManager.GetMainGroupId(), GroupManager::SetMainGroup);
+    }
+
+    // The groups' names (or why there are none), and the main group (signed in only).
     private void ShowGroupRow()
     {
-        Group group = GroupManager.GetCurrentGroup();
-        if (!AccountManager.IsSignedIn())
+        boolean signedIn = AccountManager.IsSignedIn();
+        binding.mainGroupRow.setVisibility(signedIn ? View.VISIBLE : View.GONE);
+        if (!signedIn)
+        {
             binding.groupSummary.setText(R.string.settings_group_signed_out);
-        else
-            binding.groupSummary.setText(group == null ? getString(R.string.group_loading) : group.Name);
+            return;
+        }
+        if (!GroupManager.IsLoaded())
+        {
+            int text = GroupManager.HasLoadFailed() ? R.string.group_load_failed : R.string.group_loading;
+            binding.groupSummary.setText(text);
+            binding.mainGroupSummary.setText(text);
+            binding.mainGroupButton.setEnabled(false);
+            return;
+        }
+        List<String> names = new ArrayList<>();
+        for (Group group : GroupManager.GetGroups())
+            names.add(group.Name);
+        binding.groupSummary.setText(TextUtils.join(", ", names));
+        Group mainGroup = GroupManager.GetMainGroup();
+        binding.mainGroupSummary.setText(mainGroup == null ? "" : getString(R.string.settings_main_group_summary, mainGroup.Name));
+        binding.mainGroupButton.setEnabled(GroupManager.GetGroups().size() > 1);
     }
 
     // Off while Google's picker or Firebase is working, so nothing is started twice.
@@ -203,7 +236,7 @@ public class SettingsActivity extends AppCompatActivity {
         GroupManager.RemoveListener(GroupChanged);
     }
 
-    // The group was looked up / renamed: show its name.
+    // The groups were loaded / renamed / joined / left: show them.
     private final GroupManager.OnGroupChanged GroupChanged = this::ShowGroupRow;
 
     @Override

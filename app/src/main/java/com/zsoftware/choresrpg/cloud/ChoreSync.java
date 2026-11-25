@@ -20,17 +20,23 @@ import com.zsoftware.choresrpg.WeekDay;
 import com.zsoftware.choresrpg.choreicon.ChoreIconEnum;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-// Keeps the chores on this phone and the signed-in user's chores in Firestore the same.
-// - Every change saved on the phone is sent right away (Firestore queues it while offline).
-// - While signed in, changes in the cloud (from other devices) are merged into the phone's chores and
-//   the open screen is told to refresh.
-// The phone's chore list (SaveData) stays the app's working copy; signed out, nothing is synced.
+// Keeps the chores on this phone and the chores of the signed-in user's groups in Firestore the same.
+// - Every change saved on the phone is sent right away to the chore's group (Firestore queues it while
+//   offline).
+// - While signed in, changes in the cloud (from other devices and other members) are merged into the
+//   phone's chores and the open screen is told to refresh.
+// The phone's chore list (SaveData) stays the app's working copy and holds the chores of every group
+// (each chore knows its group); signed out, nothing is synced.
 //
-// Chores belong to the user's group (GroupManager), so everyone in it shares them.
+// GroupManager finds the user's groups and tells ChoreSync which ones to sync (SyncGroups).
 // Firestore layout: groups/{groupId}/chores/{choreId} with description, icon, weekDays, completions,
 // removedCompletions, updatedAt and deleted (deleted chores stay as markers so other devices delete them too).
 public class ChoreSync {
@@ -44,22 +50,27 @@ public class ChoreSync {
     private static final List<OnChoresChanged> Listeners = new ArrayList<>();
     public static void AddListener(OnChoresChanged listener) { Listeners.add(listener); }
     public static void RemoveListener(OnChoresChanged listener) { Listeners.remove(listener); }
+    // Tells the visible screen the phone's chores changed (e.g. a group's chores were removed).
+    static void NotifyChoresChanged()
+    {
+        for (OnChoresChanged listener : new ArrayList<>(Listeners))
+            listener.ChoresChanged();
+    }
 
-    private static ListenerRegistration Registration;
-    // The group whose chores are synced (GroupManager); null while not syncing.
-    private static String ListeningGroupId;
+    // Group id -> the listener on that group's chores.
+    private static final Map<String, ListenerRegistration> Registrations = new HashMap<>();
     // For the "couldn't sync" toast.
     private static Context AppContext;
 
-    // Starts syncing the chores of the signed-in user's group (stops when signed out). Safe to call from
-    // every screen; SaveData must be initialized first. The group is looked up (or created) first.
+    // Starts syncing the chores of the signed-in user's groups (stops when signed out). Safe to call from
+    // every screen; SaveData must be initialized first. The groups are looked up (or created) first.
     public static void Start(Context context)
     {
         AppContext = context.getApplicationContext();
         SaveData.SetSyncHandler(new SaveData.SyncHandler() {
             @Override
-            public void ChoresSaved(List<Chore> changedChores, List<String> deletedChoreIds) {
-                Upload(changedChores, deletedChoreIds);
+            public void ChoresSaved(List<Chore> changedChores, List<Chore> deletedChores) {
+                Upload(changedChores, deletedChores);
             }
         });
 
@@ -68,51 +79,57 @@ public class ChoreSync {
             Stop();
             return;
         }
-        GroupManager.Resolve(AppContext, ChoreSync::ListenTo);
+        GroupManager.Start(AppContext);
+    }
+
+    // Syncs exactly these groups: starts listening to new ones, stops listening to the rest.
+    static void SyncGroups(Collection<String> groupIds)
+    {
+        for (String groupId : new ArrayList<>(Registrations.keySet()))
+        {
+            if (!groupIds.contains(groupId))
+                StopGroup(groupId);
+        }
+        for (String groupId : groupIds)
+        {
+            if (!Registrations.containsKey(groupId))
+                ListenTo(groupId);
+        }
     }
 
     private static void ListenTo(String groupId)
     {
-        if (groupId.equals(ListeningGroupId) && Registration != null)
-            return;
-
-        Stop();
-        ListeningGroupId = groupId;
-        // The first result has everything in the cloud; that's also when the phone's chores are uploaded
-        // into a new group.
-        Registration = GetChores(groupId).addSnapshotListener((snapshot, error) -> {
+        // The first result has everything in the cloud; that's also when chores only on the phone go up.
+        Registrations.put(groupId, GetChores(groupId).addSnapshotListener((snapshot, error) -> {
             if (error != null)
             {
-                // Firestore stops the listener after an error. Forget it, so the next screen that opens starts
-                // again. PERMISSION_DENIED usually means the user was just removed from the group: look the
-                // group up again (GroupManager notices and moves them to a new one) instead of a toast.
-                Stop();
-                boolean refused = error.getCode() == FirebaseFirestoreException.Code.PERMISSION_DENIED;
-                if (refused && !RetriedAfterRefusal)
-                {
-                    RetriedAfterRefusal = true;
-                    GroupManager.Clear();
-                    Start(AppContext);
-                    return;
-                }
-                ReportFailure("ListenTo: listening for cloud changes failed", error);
+                // Firestore stops the listener after an error. Forget it, so it's started again the next time
+                // a screen opens. PERMISSION_DENIED means the user is no longer in the group; GroupManager
+                // notices that by itself, so no toast.
+                StopGroup(groupId);
+                if (error.getCode() != FirebaseFirestoreException.Code.PERMISSION_DENIED)
+                    ReportFailure("ListenTo: listening for cloud changes failed", error);
                 return;
             }
-            RetriedAfterRefusal = false;
             if (snapshot != null)
-                OnCloudChores(snapshot);
-        });
+                OnCloudChores(groupId, snapshot);
+        }));
     }
-    private static boolean RetriedAfterRefusal = false;
 
-    // Stops listening for cloud changes (after signing out, or before moving to another group). The phone
-    // keeps its chores.
+    // Stops syncing one group (left it, or removed from it). The phone keeps whatever it has.
+    static void StopGroup(String groupId)
+    {
+        ListenerRegistration registration = Registrations.remove(groupId);
+        if (registration != null)
+            registration.remove();
+    }
+
+    // Stops listening for cloud changes (after signing out). The phone keeps its chores.
     public static void Stop()
     {
-        if (Registration != null)
-            Registration.remove();
-        Registration = null;
-        ListeningGroupId = null;
+        for (ListenerRegistration registration : Registrations.values())
+            registration.remove();
+        Registrations.clear();
     }
 
     private static CollectionReference GetChores(String groupId)
@@ -132,7 +149,7 @@ public class ChoreSync {
     // since one failure often hits many chores at once.
     private static final long FailureToastIntervalMillis = 10000;
     private static long LastFailureToastMillis = 0;
-    private static void ReportFailure(String message, Exception error)
+    static void ReportFailure(String message, Exception error)
     {
         Log.e(LOGTAG, message, error);
         long now = System.currentTimeMillis();
@@ -144,67 +161,112 @@ public class ChoreSync {
         ShortToast.Show(AppContext, refused ? R.string.sync_refused : R.string.sync_failed);
     }
 
-    // Sends chores changed or deleted on this phone. Signed out (or while the group is being looked up),
-    // deletions wait in SaveData's pending list and changes go up with the next sync.
-    private static void Upload(List<Chore> changedChores, List<String> deletedChoreIds)
+    // Sends chores changed or deleted on this phone to their groups. For groups not synced right now
+    // (signed out, or still being looked up), deletions wait in SaveData's pending list and changes go up
+    // with the group's next sync.
+    private static void Upload(List<Chore> changedChores, List<Chore> deletedChores)
     {
-        String groupId = ListeningGroupId;
         SaveData saveData = SaveData.Instance();
-        if (groupId == null || AccountManager.GetUserId() == null || saveData == null)
+        if (AccountManager.GetUserId() == null || saveData == null)
             return;
-        CollectionReference chores = GetChores(groupId);
         for (Chore chore : changedChores)
-            Write(chores.document(chore.GetId()), ToDocument(chore), false);
-
-        Map<String, Long> pendingDeletes = saveData.GetPendingDeletes();
-        for (String id : deletedChoreIds)
         {
-            Long deletedAt = pendingDeletes.get(id);
-            UploadDelete(chores, id, deletedAt == null ? System.currentTimeMillis() : deletedAt);
+            String groupId = chore.GetGroupId();
+            if (groupId != null && Registrations.containsKey(groupId))
+                Write(GetChores(groupId).document(chore.GetId()), ToDocument(chore), false);
+        }
+
+        for (Chore chore : deletedChores)
+        {
+            String groupId = chore.GetGroupId();
+            if (groupId == null || !Registrations.containsKey(groupId))
+                continue;
+            Long deletedAt = saveData.GetPendingDeletes(groupId).get(chore.GetId());
+            UploadDelete(groupId, chore.GetId(), deletedAt == null ? System.currentTimeMillis() : deletedAt);
         }
     }
 
     // Marks the chore deleted in the cloud (the document stays, so other devices see the deletion).
     // Firestore keeps the write even offline, so the phone no longer needs to remember it.
-    private static void UploadDelete(CollectionReference chores, String id, long deletedAt)
+    private static void UploadDelete(String groupId, String id, long deletedAt)
     {
         Map<String, Object> deleted = new HashMap<>();
         deleted.put("deleted", true);
         deleted.put("updatedAt", deletedAt);
-        Write(chores.document(id), deleted, true);
-        SaveData.Instance().ClearPendingDelete(id);
+        Write(GetChores(groupId).document(id), deleted, true);
+        SaveData.Instance().ClearPendingDelete(groupId, id);
     }
 
-    private static void OnCloudChores(QuerySnapshot snapshot)
+    // Merges one group's chores from the cloud with that group's chores on the phone; the other groups'
+    // chores stay as they are.
+    private static void OnCloudChores(String groupId, QuerySnapshot snapshot)
     {
         SaveData saveData = SaveData.Instance();
-        String groupId = ListeningGroupId;
-        if (saveData == null || groupId == null || AccountManager.GetUserId() == null)
+        if (saveData == null || !Registrations.containsKey(groupId) || AccountManager.GetUserId() == null)
             return;
 
         List<ChoreSyncMerge.Remote> remote = new ArrayList<>();
         for (DocumentSnapshot document : snapshot.getDocuments())
         {
-            ChoreSyncMerge.Remote chore = FromDocument(document);
+            ChoreSyncMerge.Remote chore = FromDocument(groupId, document);
             if (chore != null)
                 remote.add(chore);
         }
 
-        ChoreSyncMerge.Result result = ChoreSyncMerge.Reconcile(saveData.GetChoreList(), remote, saveData.GetPendingDeletes());
-        for (String id : result.PendingDeletesDone)
-            saveData.ClearPendingDelete(id);
-        if (result.LocalChanged)
+        List<Chore> allChores = saveData.GetChoreList();
+        List<Chore> groupChores = new ArrayList<>();
+        for (Chore chore : allChores)
         {
-            saveData.SaveChoreListFromCloud(result.LocalChores);
-            for (OnChoresChanged listener : new ArrayList<>(Listeners))
-                listener.ChoresChanged();
+            if (groupId.equals(chore.GetGroupId()))
+                groupChores.add(chore);
         }
 
-        CollectionReference chores = GetChores(groupId);
+        ChoreSyncMerge.Result result = ChoreSyncMerge.Reconcile(groupChores, remote, saveData.GetPendingDeletes(groupId));
+        for (String id : result.PendingDeletesDone)
+            saveData.ClearPendingDelete(groupId, id);
+        if (result.LocalChanged)
+        {
+            saveData.SaveChoreListFromCloud(ReplaceGroupChores(allChores, groupId, result.LocalChores));
+            NotifyChoresChanged();
+        }
+
         for (Chore chore : result.ToUpload)
-            Write(chores.document(chore.GetId()), ToDocument(chore), false);
+            Write(GetChores(groupId).document(chore.GetId()), ToDocument(chore), false);
         for (Map.Entry<String, Long> delete : result.DeletesToUpload.entrySet())
-            UploadDelete(chores, delete.getKey(), delete.getValue());
+            UploadDelete(groupId, delete.getKey(), delete.getValue());
+    }
+
+    // The phone's chores with one group's chores replaced by 'groupChores', keeping the phone's order
+    // (new ones at the end).
+    private static List<Chore> ReplaceGroupChores(List<Chore> allChores, String groupId, List<Chore> groupChores)
+    {
+        Map<String, Chore> replacements = new LinkedHashMap<>();
+        for (Chore chore : groupChores)
+            replacements.put(chore.GetId(), chore);
+        List<Chore> merged = new ArrayList<>();
+        Set<String> ids = new HashSet<>();
+        for (Chore chore : allChores)
+        {
+            if (!groupId.equals(chore.GetGroupId()))
+            {
+                merged.add(chore);
+                ids.add(chore.GetId());
+                continue;
+            }
+            Chore replacement = replacements.remove(chore.GetId());
+            if (replacement != null)
+            {
+                merged.add(replacement);
+                ids.add(replacement.GetId());
+            }
+        }
+        for (Chore chore : replacements.values())
+        {
+            // Ids are unique across groups; never show the same chore twice.
+            if (ids.add(chore.GetId()))
+                merged.add(chore);
+        }
+        return merged;
     }
 
     private static Map<String, Object> ToDocument(Chore chore)
@@ -224,7 +286,7 @@ public class ChoreSync {
     }
 
     // Null when the document can't be read (e.g. written by a newer app version with an unknown icon).
-    private static ChoreSyncMerge.Remote FromDocument(DocumentSnapshot document)
+    private static ChoreSyncMerge.Remote FromDocument(String groupId, DocumentSnapshot document)
     {
         try
         {
@@ -244,6 +306,7 @@ public class ChoreSync {
                     AsTimes(document.get("completions")),
                     AsTimes(document.get("removedCompletions")),
                     updated);
+            chore.SetGroupId(groupId);
             return new ChoreSyncMerge.Remote(document.getId(), chore, false, updated);
         }
         catch (RuntimeException e)

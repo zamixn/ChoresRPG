@@ -21,6 +21,8 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.zsoftware.choresrpg.choreicon.ChoreIconDictionary;
 import com.zsoftware.choresrpg.choreicon.ChoreIconPicker;
 import com.zsoftware.choresrpg.cloud.ChoreSync;
+import com.zsoftware.choresrpg.cloud.Group;
+import com.zsoftware.choresrpg.cloud.GroupManager;
 import com.zsoftware.choresrpg.databinding.ActivityChoreBinding;
 import com.zsoftware.choresrpg.databinding.DialogEditDescriptionBinding;
 
@@ -178,6 +180,12 @@ public class ChoreActivity extends AppCompatActivity {
         // Nothing to reset when the chore was never completed.
         binding.resetLastCompletedButton.setEnabled(lastCompleted != null);
         binding.resetLastCompletedButton.setAlpha(lastCompleted != null ? 1f : 0.3f);
+
+        // The group it's shared in (known once signed in and the groups are loaded).
+        Group group = GroupManager.GetGroup(chore.GetGroupId());
+        binding.choreGroupRow.setVisibility(group != null ? View.VISIBLE : View.GONE);
+        if (group != null)
+            binding.choreGroupText.setText(group.Name);
 
         // Completed today: green button that only tells the user it's already done.
         if (chore.IsCompletedToday())
